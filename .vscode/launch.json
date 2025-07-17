@@ -8,12 +8,8 @@
             "name": "🐍 FastAPI: Uvicorn (dev)",
             "type": "debugpy",
             "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "app.main:app",
-                "--reload",
-                "--port", "8000"
-            ],
+            "program": "${workspaceFolder}/Launch.py",
+            "console": "integratedTerminal",
             "jinja": true
         }
     ]
