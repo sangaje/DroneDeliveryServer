@@ -1,0 +1,105 @@
+/* app/web/static/css/style.css */
+
+/* General body styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f7f9fc;
+    /* Light background color for the page */
+    color: #222;
+    /* Default text color */
+    margin: 0;
+    /* Remove default margin */
+    padding: 0;
+    /* Remove default padding */
+    line-height: 1.6;
+    /* Improve text readability */
+}
+
+/* Styling for header and footer sections */
+header,
+footer {
+    background-color: #222;
+    /* Dark background for header and footer */
+    color: white;
+    /* White text color for contrast */
+    padding: 1em;
+    /* Add padding for spacing */
+    text-align: center;
+    /* Center align text */
+}
+
+/* Main content area styling */
+main {
+    max-width: 800px;
+    /* Limit the width of the main content */
+    margin: 2em auto;
+    /* Center the main content with margin */
+    padding: 2em;
+    /* Add padding inside the main content */
+    background-color: white;
+    /* White background for the main content */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* Add subtle shadow for depth */
+    border-radius: 8px;
+    /* Rounded corners for a modern look */
+}
+
+/* Styling for panels within the main content */
+.main-panel {
+    max-width: 800px;
+    /* Limit the width of the panel */
+    margin: 2em auto;
+    /* Center the panel with margin */
+    padding: 2em;
+    /* Add padding inside the panel */
+    background-color: white;
+    /* White background for the panel */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* Add subtle shadow for depth */
+    border-radius: 8px;
+    /* Rounded corners for a modern look */
+}
+
+/* Styling for headings */
+h1,
+h2 {
+    color: #1a73e8;
+    /* Blue color for headings */
+}
+
+/* Styling for links */
+a {
+    color: #1a73e8;
+    /* Blue color for links */
+    text-decoration: none;
+    /* Remove underline from links */
+}
+
+a:hover {
+    text-decoration: underline;
+    /* Add underline on hover for links */
+}
+
+.btn-link {
+    display: inline-block;
+    margin-top: 1em;
+    padding: 0.5em 1em;
+    background-color: #1a73e8;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-link:hover {
+    background-color: #1665c1;
+}
+
+ul.links {
+    list-style: none;
+    padding: 0;
+}
+
+ul.links li {
+    margin: 0.5em 0;
+}

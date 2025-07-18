@@ -1,0 +1,17 @@
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
+router = APIRouter(prefix="/airsim_config")
+templates = Jinja2Templates(directory="app/web/templates")
+
+@router.get("/", response_class=HTMLResponse)
+async def get_airsim_config(request: Request):
+    """
+    AirSim configuration endpoint.
+    Returns a page with instructions on how to configure AirSim.
+    """
+    context ={
+        "request": request,
+    }
+    return templates.TemplateResponse("airsim_config.html", context=context)
