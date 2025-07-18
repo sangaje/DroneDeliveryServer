@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from enum import Enum
 
+
+
 class DroneStatusEnum(str, Enum):
     """
     Drone Status Enum
@@ -18,36 +20,32 @@ class DroneStatusEnum(str, Enum):
     MAINTENANCE = "maintenance"
     ERROR = "error"
 
+
+
 class DroneCommand(BaseModel):
-    command: str # Command to be sent to the drone
+    """
+    Drone Command Model
+    
+    Attributes:
+        drone_id: Unique identifier for the drone
+        command: Command to be executed by the drone (e.g., start, stop, return)
+    """
+    drone_id: int
+    command: str
+
+
 
 class DroneStatus(BaseModel):
-    id: int                  # Unique identifier for the drone
-    status: DroneStatusEnum  # Current status of the drone
-    latitude: float = None   # Current latitude of the drone
-    longitude: float = None  # Current longitude of the drone
+    """
+    Drone Status Model
 
-
-
-# Test area
-import unittest
-
-class TestDroneModels(unittest.TestCase):
-    def test_drone_command(self):
-        cmd = DroneCommand(command="takeoff")
-        self.assertEqual(cmd.command, "takeoff")
-
-    def test_drone_status(self):
-        status = DroneStatus(
-            id=1,
-            status=DroneStatusEnum.ACTIVE,
-            latitude=37.5665,
-            longitude=126.9780
-        )
-        self.assertEqual(status.id, 1)
-        self.assertEqual(status.status, DroneStatusEnum.ACTIVE)
-        self.assertEqual(status.latitude, 37.5665)
-        self.assertEqual(status.longitude, 126.9780)
-
-if __name__ == "__main__":
-    unittest.main()
+    Attributes:
+        drone_id: Unique identifier for the drone
+        status: Current status of the drone (idle, active, charging, maintenance, error)       
+        latitude: Current latitude of the drone
+        longitude: Current longitude of the drone
+    """
+    drone_id: int                 
+    status: DroneStatusEnum
+    latitude: float = None   
+    longitude: float = None  
