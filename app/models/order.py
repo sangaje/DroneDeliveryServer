@@ -80,7 +80,7 @@ class Drone(Base):
 
 
 
-# Test area\
+# Test area
 import unittest
 
 class TestOrderModel(unittest.TestCase):
