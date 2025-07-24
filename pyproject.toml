@@ -1,7 +1,7 @@
 [project]
-name = "DroneDeliveryServer"
+name = "ddapi"
 version = "0.1.0"
-description = "Default template for PDM package"
+description = "Drone Delivery Server API for real-time drone delivery operations simulation. This API provides endpoints for managing drone delivery operations, including task management, drone status updates, and real-time telemetry data."
 authors = [{ name = "산에사는가재", email = "qhals8380@gmail.com" }]
 dependencies = [
   "fastapi[standard]>=0.116.1",
