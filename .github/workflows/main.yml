@@ -1,0 +1,33 @@
+name: Format, Lint, Typecheck
+
+on:
+  pull_request:
+    branches: ["**"]  # 모든 브랜치 대상 PR에서 실행
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PDM
+        run: python -m pip install pdm
+
+      - name: Install dependencies
+        run: pdm install
+
+      - name: Run ruff format (auto-fix)
+        run: pdm run ruff format .
+
+      - name: Run ruff check
+        run: pdm run ruff check .
+
+      - name: Run mypy
+        run: pdm run mypy .
