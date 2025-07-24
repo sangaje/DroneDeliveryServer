@@ -1,11 +1,10 @@
-from pydantic import BaseModel
 from enum import Enum
 
+from pydantic import BaseModel
 
 
 class DroneStatusEnum(str, Enum):
-    """
-    Drone Status Enum
+    """Drone Status Enum
 
     Attributes:
         IDLE: Drone is idle
@@ -23,8 +22,7 @@ class DroneStatusEnum(str, Enum):
 
 
 class DroneCommand(BaseModel):
-    """
-    Drone Command Model
+    """Drone Command Model
     
     Attributes:
         drone_id: Unique identifier for the drone
@@ -36,8 +34,7 @@ class DroneCommand(BaseModel):
 
 
 class DroneStatus(BaseModel):
-    """
-    Drone Status Model
+    """Drone Status Model
 
     Attributes:
         drone_id: Unique identifier for the drone
@@ -45,7 +42,7 @@ class DroneStatus(BaseModel):
         latitude: Current latitude of the drone
         longitude: Current longitude of the drone
     """
-    drone_id: int                 
+    drone_id: int
     status: DroneStatusEnum
-    latitude: float = None   
-    longitude: float = None  
+    latitude: float = None
+    longitude: float = None

@@ -1,16 +1,14 @@
-from sqlalchemy import (
-    Column, Integer, String, DateTime, ForeignKey, Enum as SqlEnum, create_engine
-)
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+
+from sqlalchemy import Column, DateTime, Enum as SqlEnum, ForeignKey, Integer, String
+from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 kst = timezone(timedelta(hours=9))  # Korea Standard Time (UTC+9)
 
 class OrderStatus(str, Enum):
-    """
-    Order Status Enum
+    """Order Status Enum
 
     Attributes:
         PENDING: Order is pending
@@ -28,8 +26,7 @@ class OrderStatus(str, Enum):
 
 
 class Order(Base):
-    """
-    Order model 
+    """Order model
 
     Attributes:
         id: Unique identifier for the order
@@ -45,7 +42,7 @@ class Order(Base):
     member_id = Column(Integer, ForeignKey("members.id"), nullable=False)
     order_status = Column(SqlEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     drone_id = Column(Integer, ForeignKey("drones.id"))
-    products = Column(String) 
+    products = Column(String)
     create_time = Column(DateTime, default=lambda: datetime.now(kst))
     update_time = Column(DateTime, default=lambda: datetime.now(kst), onupdate=lambda: datetime.now(kst))
 
