@@ -14,18 +14,21 @@ requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
 
-[project.optional-dependencies]
-dev = ["ruff>=0.12.4", "mypy>=1.17.0"]
-
+[dependency-groups]
+dev = [
+    "ruff>=0.12.4",
+    "mypy>=1.17.0",
+    "pre-commit==4.2.0",
+    "pytest>=7.4.4",
+]
 # =============================================================================
 # RUFF CONFIGURATION - Settings for the ruff linter
 # =============================================================================
 
 [tool.ruff]
 src = [
-  "smart_vault",
+  "app",
   "tests",
-  "tasks",
 ] # Specify the source directory for the project
 target-version = "py312" # Specify the target Python version for linting
 line-length = 100 # Set the maximum line length for code style
@@ -94,10 +97,10 @@ show_error_codes = true
 # PDM CONFIGURATION - Settings for PDM package management
 # =============================================================================
 
+[tool.pdm]
+distribution = false
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 # Do not Change the following lines unless you know what you are doing.
-[tool.pdm]
-distribution = false
