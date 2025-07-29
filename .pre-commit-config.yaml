@@ -33,5 +33,7 @@ repos:
     rev: v1.11.2                  # Locked version for consistency
     hooks:
       - id: mypy
+        additional_dependencies:
+          - sqlalchemy
         language_version: python3  # Use Python 3 for type checking
         files: \.py$               # Apply only to Python files
