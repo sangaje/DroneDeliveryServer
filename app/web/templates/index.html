@@ -1,0 +1,56 @@
+<!-- app/web/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Drone Delivery Simulation Server</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Drone Delivery Simulation Server</h1>
+    </header>
+    <main>
+        <h2>🚁 Drone Delivery Simulation</h2>
+
+        <p>
+            본 프로젝트는 <a href="https://github.com/Cosys-Lab/Cosys-AirSim" target="_blank">Cosys-AirSim</a>을 기반으로 하여, 실제 드론
+            배송 환경을 가상 공간에서 시뮬레이션하기 위한 시스템을 구현한 것입니다. Cosys-AirSim은 Microsoft의 오픈소스 시뮬레이터인 AirSim을 Cosys-Lab에서 확장했습니다. 이는
+            다수의 드론 운용, 복잡한 도시 환경 모델링, 동적 장애물 반응 등을 지원하며, 특히 드론 기반 물류 시스템의 시뮬레이션에 특화되어 있습니다.
+        </p>
+
+        <p>
+            본 프레임워크는 드론의 자동 경로 계획(path planning), 임무 할당(task allocation), 충돌 회피(collision avoidance) 등의 핵심 기능을 포함하고 있으며,
+            이를 통해 현실적인 드론 운용 시나리오를 실시간으로 검증하고 실험할 수 있도록 구성되어 있습니다. 또한 다수의 드론 간 상호작용, 충돌 위험 예측, 제한된 공역 내 최적화된 경로 생성과 같은
+            고차원적인 문제를 모의 실험할 수 있는 기반을 제공합니다.
+        </p>
+
+        <p>
+            백엔드 서버는 Python 기반의 경량 웹 프레임워크인 FastAPI를 이용하여 구성되었으며, 시뮬레이터 내부 설정 제어, 실시간 상태 조회, 임무 명령 전송 등의 기능을 RESTful API
+            형태로 제공합니다. FastAPI는 비동기 I/O 처리를 지원함으로써 고성능 API 서버 구현에 적합하고, 자동 OpenAPI 문서 생성을 통해 개발자 친화적인 환경을 제공합니다.
+        </p>
+
+        <h2>📚 API 문서</h2>
+        <p>
+            API 문서는 FastAPI가 기본적으로 제공하는 <strong>Swagger UI</strong> 및 <strong>ReDoc</strong>을 통해 인터랙티브하게 접근할 수 있으며,
+            아래링크를 통해 직접 확인할 수 있습니다.
+        </p>
+        <ul class="links">
+            <li><a class="btn-link" href="/docs">Swagger UI</a></li>
+            <li><a class="btn-link" href="/redoc">ReDoc</a></li>
+        </ul>
+
+        <h2>🛠️ Configure AirSim</h2>
+        <p>아래의 링크를 통해 AirSim을 설정할 수 있습니다. 처음 사용하시는 경우, 기본 설정을 먼저 해주시길 바랍니다.</p>
+        <a class="btn-link" href="/airsim_config">AirSim 설정하기</a>
+
+
+    </main>
+    <footer>
+        &copy; 2025 - 보민, 민석
+    </footer>
+</body>
+
+</html>
