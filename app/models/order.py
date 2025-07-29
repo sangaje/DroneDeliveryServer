@@ -1,10 +1,9 @@
-"""TODO: Add a description of the module here."""
+"""TODO: Add docstring for the module."""
 
 from datetime import datetime, timedelta, timezone
-from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Enum as SqlEnum, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -15,52 +14,62 @@ class OrderStatus(str, Enum):
     """Order Status Enum.
 
     Attributes:
-        PENDING: Order is pending
-        IN_PROGRESS: Order is being processed
-        COMPLETED: Order has been completed
-        CANCELLED: Order has been cancelled
-        FAILED: Order processing has failed
+    - PENDING: The order has been created but not yet assigned to a drone.
+    - ACCEPTED: The order has been assigned to a drone.
+    - RECEIVED: The drone has picked up the package.
+    - DELIVERED: The drone has successfully delivered the package.
+    - FAILED: The delivery has failed.
+    - CANCELED: The order has been canceled.
     """
 
     PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    ACCEPTED = "accepted"
+    RECEIVED = "received"
+    DELIVERED = "delivered"
     FAILED = "failed"
+    CANCELED = "canceled"
 
 
 class Order(Base):
     """Order model.
 
     Attributes:
-        id: Unique identifier for the order
-        member_id: Foreign key referencing the member who placed the order
-        order_status: Status of the order (pending, in_progress, completed, cancelled, failed)
-        drone_id: Foreign key referencing the drone assigned to the order
-        products: JSON string containing product details
-        create_time: Timestamp when the order was created
-        update_time: Timestamp when the order was last updated
+    - order_id: The primary key for the order.
+    - drone_id: The foreign key linking to the assigned drone.
+    - order_status: The current status of the order, using the OrderStatus enum.
+    - receive_lat: The latitude of the pickup location.
+    - receive_lon: The longitude of the pickup location.
+    - receive_alt: The altitude of the pickup location.
+    - deliver_lat: The latitude of the delivery destination.
+    - deliver_lon: The longitude of the delivery destination.
+    - deliver_alt: The altitude of the delivery destination.
+    - assigned_at: The timestamp when the order was created.
+    - completed_at: The timestamp when the order was completed (delivered, failed, or canceled).
     """
 
     __tablename__ = "orders"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    member_id = Column(Integer, ForeignKey("members.id"), nullable=False)
-    order_status = Column(SqlEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
-    drone_id = Column(Integer, ForeignKey("drones.id"))
-    products = Column(String)
-    create_time = Column(DateTime, default=lambda: datetime.now(kst))
-    update_time = Column(
-        DateTime, default=lambda: datetime.now(kst), onupdate=lambda: datetime.now(kst)
-    )
+    order_id = Column(Integer, primary_key=True, autoincrement=True)
+    drone_id = Column(Integer, ForeignKey("drones.drone_id"))
+    order_status = Column(OrderStatus, nullable=False, default=OrderStatus.PENDING)
+
+    receive_lat = Column(Float, nullable=False)
+    receive_lon = Column(Float, nullable=False)
+    receive_alt = Column(Float, nullable=False)
+
+    deliver_lat = Column(Float, nullable=False)
+    deliver_lon = Column(Float, nullable=False)
+    deliver_alt = Column(Float, nullable=False)
+
+    assigned_at = Column(DateTime, default=datetime.now(kst))
+    completed_at = Column(DateTime, nullable=True)
 
     def __init__(self, **kwargs: Any) -> None:
-        """TODO: Add a description of the constructor.
+        """Initializes an Order instance.
+
+        This constructor accepts keyword arguments to set the attributes of the Order
+        model.
 
         :param kwargs: Keyword arguments to initialize the order.
         :return: None
         """
         super().__init__(**kwargs)
-        if "create_time" not in kwargs:
-            self.create_time = datetime.now(kst)
-        if "update_time" not in kwargs:
-            self.update_time = datetime.now(kst)
