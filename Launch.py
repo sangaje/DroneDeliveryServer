@@ -1,4 +1,8 @@
-# launch.py
+"""Launch script for the FastAPI application.
+
+This script serves as the entry point to run the FastAPI server.
+"""
+
 import uvicorn
 
 if __name__ == "__main__":

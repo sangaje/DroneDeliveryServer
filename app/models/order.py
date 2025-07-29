@@ -1,5 +1,8 @@
+"""TODO: Add a description of the module here."""
+
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any
 
 from sqlalchemy import Column, DateTime, Enum as SqlEnum, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base
@@ -7,16 +10,18 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 kst = timezone(timedelta(hours=9))  # Korea Standard Time (UTC+9)
 
+
 class OrderStatus(str, Enum):
-    """Order Status Enum
+    """Order Status Enum.
 
     Attributes:
         PENDING: Order is pending
-        IN_PROGRESS: Order is being processed           
+        IN_PROGRESS: Order is being processed
         COMPLETED: Order has been completed
         CANCELLED: Order has been cancelled
         FAILED: Order processing has failed
     """
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -24,9 +29,8 @@ class OrderStatus(str, Enum):
     FAILED = "failed"
 
 
-
 class Order(Base):
-    """Order model
+    """Order model.
 
     Attributes:
         id: Unique identifier for the order
@@ -37,6 +41,7 @@ class Order(Base):
         create_time: Timestamp when the order was created
         update_time: Timestamp when the order was last updated
     """
+
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, autoincrement=True)
     member_id = Column(Integer, ForeignKey("members.id"), nullable=False)
@@ -44,11 +49,18 @@ class Order(Base):
     drone_id = Column(Integer, ForeignKey("drones.id"))
     products = Column(String)
     create_time = Column(DateTime, default=lambda: datetime.now(kst))
-    update_time = Column(DateTime, default=lambda: datetime.now(kst), onupdate=lambda: datetime.now(kst))
+    update_time = Column(
+        DateTime, default=lambda: datetime.now(kst), onupdate=lambda: datetime.now(kst)
+    )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
+        """TODO: Add a description of the constructor.
+
+        :param kwargs: Keyword arguments to initialize the order.
+        :return: None
+        """
         super().__init__(**kwargs)
-        if 'create_time' not in kwargs:
+        if "create_time" not in kwargs:
             self.create_time = datetime.now(kst)
-        if 'update_time' not in kwargs:
+        if "update_time" not in kwargs:
             self.update_time = datetime.now(kst)

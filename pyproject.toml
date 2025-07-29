@@ -9,6 +9,7 @@ dependencies = [
   "pydantic==2.11.7",
   "rpc-msgpack==0.6",
   "cosysairsim==3.3.0",
+  "SQLAlchemy>=2.0.41",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
@@ -16,23 +17,21 @@ license = { text = "MIT" }
 
 [dependency-groups]
 dev = [
-    "ruff>=0.12.4",
-    "mypy>=1.17.0",
-    "pre-commit==4.2.0",
-    "pytest>=7.4.4",
+  "ruff>=0.12.4",
+  "mypy>=1.17.0",
+  "pre-commit==4.2.0",
+  "pytest>=7.4.4",
+  "docformatter>=1.7.7",
 ]
 # =============================================================================
 # RUFF CONFIGURATION - Settings for the ruff linter
 # =============================================================================
 
 [tool.ruff]
-src = [
-  "app",
-  "tests",
-] # Specify the source directory for the project
-target-version = "py312" # Specify the target Python version for linting
-line-length = 100 # Set the maximum line length for code style
-indent-width = 4 # Indentation width for code style
+src = ["app", "tests"]    # Specify the source directory for the project
+target-version = "py312"  # Specify the target Python version for linting
+line-length = 100         # Set the maximum line length for code style
+indent-width = 4          # Indentation width for code style
 extend-include = ["*.py"] # Include all Python files for linting
 fix = true
 
@@ -92,10 +91,20 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
 show_error_codes = true
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+
 
 # =============================================================================
 # PDM CONFIGURATION - Settings for PDM package management
 # =============================================================================
+
+[tool.pdm.scripts]
+help = "ec"
+lint = "pdm run ruff check --fix ."
+fmt-code = "pdm run ruff format ."
+fmt-docstrings = "pdm run docformatter --in-place --wrap-summaries 88 --wrap-descriptions 88 --recursive ."
+type-check = "pdm run mypy ."
+
 
 [tool.pdm]
 distribution = false

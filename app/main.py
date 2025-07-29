@@ -1,5 +1,5 @@
-"""
-Entry point for the FastAPI application.
+"""Entry point for the FastAPI application.
+
 This file initializes the FastAPI app and includes the API router.
 """
 
