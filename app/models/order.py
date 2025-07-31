@@ -4,9 +4,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer
-from sqlalchemy.orm import declarative_base
 
-Base = declarative_base()
+from app.models.base import Base
+
 kst = timezone(timedelta(hours=9))  # Korea Standard Time (UTC+9)
 
 

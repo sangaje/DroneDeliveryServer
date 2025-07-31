@@ -1,12 +1,13 @@
 """TODO: Add a description of the module here."""
 
 from datetime import timedelta, timezone
+from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, Enum, Float, Integer
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Enum as SQLEnum, Float, Integer
 
-Base = declarative_base()
+from app.models.base import Base
+
 kst = timezone(timedelta(hours=9))  # Korea Standard Time (UTC+9)
 
 
@@ -32,8 +33,8 @@ class Drone(Base):
     """Drone model.
 
     Attributes:
-    - drone_id: The primary key for the drone.
-    - drone_status: The current status of the drone, using the DroneStatus enum.
+    - id: The primary key for the drone.
+    - status: The current status of the drone, using the DroneStatus enum.
     - max_battery: The maximum battery capacity in mAh.
     - cur_battery: The current battery level in mAh.
     - max_payload: The maximum payload weight the drone can carry in kg.
@@ -44,8 +45,8 @@ class Drone(Base):
     """
 
     __tablename__ = "drones"
-    drone_id = Column(Integer, primary_key=True, autoincrement=True)
-    drone_status = Column(DroneStatus, nullable=False, default=DroneStatus.IDLE)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    status = Column(SQLEnum(DroneStatus), nullable=False, default=DroneStatus.IDLE)
 
     max_battery = Column(Float, nullable=False)
     cur_battery = Column(Float, nullable=False)
