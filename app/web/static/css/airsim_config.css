@@ -1,0 +1,45 @@
+/* ───────────────────────────────
+   AirSim Configuration Form Styles
+   File: static/css/airsim_config.css
+   ─────────────────────────────── */
+
+/* 전체 폼 스타일 */
+form {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+}
+
+/* fieldset: 그룹 영역 */
+fieldset {
+    margin-left: 20px;
+    padding: 10px 20px;
+    border: 1px solid #aaa;
+    border-left: 3px solid #666;
+    background-color: #f9f9f9;
+}
+
+/* legend: 그룹 제목 */
+legend {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+    padding: 2px 6px;
+}
+
+/* label: 각 항목 수직 정렬 */
+label {
+    display: block;
+    margin-bottom: 8px;
+    margin-left: 10px;
+}
+
+/* input: 텍스트/숫자/체크박스 공통 스타일 */
+input[type="text"],
+input[type="number"],
+input[type="checkbox"] {
+    margin-left: 8px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}

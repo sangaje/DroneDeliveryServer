@@ -103,3 +103,37 @@ ul.links {
 ul.links li {
     margin: 0.5em 0;
 }
+
+.checkbox-wrapper {
+border: 2px solid #ddd;
+border-radius: 12px;
+padding: 1.5rem;
+background-color: #db1010;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+margin: 1rem 0;
+}
+
+.checkbox-wrapper h3 {
+margin-top: 0;
+font-size: 1.1rem;
+font-weight: 600;
+color: #333;
+margin-bottom: 1rem;
+}
+
+.checkbox-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+gap: 0.8rem;
+}
+
+.checkbox-item {
+display: flex;
+align-items: center;
+font-size: 0.95rem;
+}
+
+.checkbox-item input {
+margin-right: 0.5rem;
+transform: scale(1.1);
+}
