@@ -24,6 +24,22 @@ dev = [
   "docformatter>=1.7.7",
 ]
 # =============================================================================
+# PyTest CONFIGURATION - Settings for the ruff linter
+# =============================================================================
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-v --tb=short --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+markers = [
+  "slow: marks tests as slow",
+  "integration: integration tests",
+  "fileio: file input/output tests",
+]
+
+
+
+# =============================================================================
 # RUFF CONFIGURATION - Settings for the ruff linter
 # =============================================================================
 
@@ -102,12 +118,16 @@ plugins = ["sqlalchemy.ext.mypy.plugin"]
 help = "ec"
 lint = "pdm run ruff check --fix ."
 fmt-code = "pdm run ruff format ."
-fmt-docstrings = "pdm run docformatter --in-place --wrap-summaries 88 --wrap-descriptions 88 --recursive ."
+fmt-docstrings = "pdm run docformatter --in-place --wrap-summaries 100 --wrap-descriptions 100 --recursive ."
 type-check = "pdm run mypy ."
+test = "pdm run pytest"
 
+[tool.pdm.build]
+includes = ["app"]
 
 [tool.pdm]
 distribution = false
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
