@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.services.airsim.config import AirSimConfig
-from app.services.airsim.constants import CUSTUM_AIRSIM_CONFIG_KEY, DRONE_GROUP_KEY
+from app.services.airsim.constants import CUSTOM_AIRSIM_CONFIG_KEY, DRONE_GROUP_KEY
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/web/templates")
@@ -28,7 +28,7 @@ async def get_index(request: Request) -> Any:
     context = {
         "request": request,
         "airsim_config_names": AirSimConfig().config_names(
-            CUSTUM_AIRSIM_CONFIG_KEY
+            CUSTOM_AIRSIM_CONFIG_KEY
         ),  # List of available AirSim configurations
         "drone_group_config_names": AirSimConfig().config_names(DRONE_GROUP_KEY),
     }

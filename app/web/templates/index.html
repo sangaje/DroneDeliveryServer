@@ -38,7 +38,8 @@
         <h2>🚀 Launch AirSim</h2>
         <p>AirSim을 실행하려면 아래 버튼을 클릭하세요.</p>
 
-        <form method="get" action="/airsim/launch">
+        <form id="config-form" method="get" action="/airsim/launch">
+            <button type="submit" class="btn-link">🚀 Launch!</button><br>
             <label for="config_name">Airsim Config 선택:</label>
             <select name="config_name" id="config_name" required>
                 {% for name in airsim_config_names %}
@@ -51,14 +52,26 @@
                 <div class="checkbox-grid">
                     {% for name in drone_group_config_names %}
                     <label class="checkbox-item">
-                        <input type="checkbox" name="{{ name }}" value="{{ name }}" {% if name==airsim_config_name
+                        <input type="checkbox" name="drone_groups" value="{{ name }}" {% if name==airsim_config_name
                             %}checked{% endif %}> {{ name }}
                     </label><br>
                     {% endfor %}
                 </div>
             </div>
+        </form>
+
+        <h2>📂 Load Simulation Session</h2>
+        <form id="config-form" method="get" action="/airsim/launch">
+            <label for="config_name">Session 불러오기:</label>
+            <select name="config_name" id="config_name" required>
+                {% for name in simulation_sessions %}
+                <option value="{{ name }}" {% if name==session_name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
             <button type="submit" class="btn-link">🚀 Launch!</button>
         </form>
+
+
 
         <h2>🛠️ Configure AirSim</h2>
         <p>아래의 링크를 통해 AirSim을 설정할 수 있습니다. 처음 사용하시는 경우, 기본 설정을 먼저 해주시길 바랍니다.</p>
@@ -76,7 +89,7 @@
 
         <form method="get" action="/airsim/config/drone_group">
             <label for="config_name">설정 선택:</label>
-            <select name="config_name" id="config_name">
+            <select name="config_name" id="config_name" >
                 <option value="">Create New Config</option>
                 {% for name in drone_group_config_names %}
                 <option value="{{ name }}" {% if name==drone_group_config_name %}selected{% endif %}>{{ name }}</option>
@@ -98,6 +111,15 @@
     <footer>
         &copy; 2025 - 보민, 민석
     </footer>
+    <script>
+        document.getElementById("config-form").addEventListener("submit", function (e) {
+            const checkboxes = document.querySelectorAll('input[name="drone_groups"]:checked');
+            if (checkboxes.length === 0) {
+                alert("하나 이상의 드론 그룹을 선택해야 합니다.");
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 {% endblock %}
 

@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.services.airsim.config import AirSimConfig, AirSimSettings, DroneGroupConfig
 from app.services.airsim.constants import (
-    CUSTUM_AIRSIM_CONFIG_KEY,
+    CUSTOM_AIRSIM_CONFIG_KEY,
     DRONE_GROUP_KEY,
 )
 
@@ -52,7 +52,7 @@ async def post_airsim_config(request: Request) -> Any:
         context={
             "request": request,
             "airsim_config_name": settings.name,
-            "airsim_config_names": AirSimConfig().config_names(CUSTUM_AIRSIM_CONFIG_KEY),
+            "airsim_config_names": AirSimConfig().config_names(CUSTOM_AIRSIM_CONFIG_KEY),
             "drone_group_config_names": AirSimConfig().config_names(DRONE_GROUP_KEY),
             "message": message,
         },
@@ -96,7 +96,7 @@ async def post_drone_config(request: Request) -> Any:
             "request": request,
             "drone_group_config_name": drone_group.name,
             "drone_group_config_names": AirSimConfig().config_names(DRONE_GROUP_KEY),
-            "airsim_config_names": AirSimConfig().config_names(CUSTUM_AIRSIM_CONFIG_KEY),
+            "airsim_config_names": AirSimConfig().config_names(CUSTOM_AIRSIM_CONFIG_KEY),
             "message": message,
         },
     )

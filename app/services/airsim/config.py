@@ -15,11 +15,11 @@ from app.configs import (
 from .constants import (
     AIRSIM_CONFIG_DEFAULT_PATH,
     AIRSIM_CONFIG_KEY,
-    CUSTUM_AIRSIM_CONFIG_KEY,
+    CUSTOM_AIRSIM_CONFIG_KEY,
     DEFAULT_AIRSIM_CONFIG_KEY,
     DEFAULT_CONFIGS_PATH,
-    DEFAULT_DORNE_GROUP_PATH,
     DEFAULT_DRONE_GROUP,
+    DEFAULT_DRONE_GROUP_PATH,
     DEFAULT_SETTINGS_PATH,
     DRONE_GROUP_KEY,
 )
@@ -45,7 +45,7 @@ class AirSimConfig(Config):
                 super().__init__()
                 self.set_path(AIRSIM_CONFIG_DEFAULT_PATH)
                 self[DEFAULT_AIRSIM_CONFIG_KEY] = DEFAULT_SETTINGS_PATH
-                self[DEFAULT_DRONE_GROUP] = DEFAULT_DORNE_GROUP_PATH
+                self[DEFAULT_DRONE_GROUP] = DEFAULT_DRONE_GROUP_PATH
                 self.save()
 
                 app_config[AIRSIM_CONFIG_KEY] = self._file
@@ -59,7 +59,7 @@ class AirSimConfig(Config):
                     super().__init__()
                     self.set_path(AIRSIM_CONFIG_DEFAULT_PATH)
                     self[DEFAULT_AIRSIM_CONFIG_KEY] = DEFAULT_SETTINGS_PATH
-                    self[DEFAULT_DRONE_GROUP] = DEFAULT_DORNE_GROUP_PATH
+                    self[DEFAULT_DRONE_GROUP] = DEFAULT_DRONE_GROUP_PATH
                     self.save()
 
                     app_config[AIRSIM_CONFIG_KEY] = self._file
@@ -171,7 +171,7 @@ class AirSimSettings(_BaseAirSimConfig):
         super().__init__(
             config_name=config_name,
             default_key=DEFAULT_AIRSIM_CONFIG_KEY,
-            custum_key=CUSTUM_AIRSIM_CONFIG_KEY,
+            custum_key=CUSTOM_AIRSIM_CONFIG_KEY,
         )
         self["SimMode"] = "Multirotor"
 
