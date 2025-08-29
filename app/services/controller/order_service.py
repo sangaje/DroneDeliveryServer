@@ -1,5 +1,7 @@
 """TODO: Add a description of the module here."""
 
+from typing import Any
+
 from app.models.order import Order
 from app.services.controller.database import SessionLocal
 
@@ -76,7 +78,7 @@ class OrderDeletionError(OrderServiceError):
         super().__init__(msg)
 
 
-def create_order(**kwargs: dict) -> Order | None:
+def create_order(**kwargs: Any) -> Order:
     """Create a new order record in the database.
 
     Args:
@@ -132,7 +134,7 @@ def get_all_orders() -> list[Order]:
         db.close()
 
 
-def update_order(order_id: int, **kwargs: dict) -> Order | None:
+def update_order(order_id: int, **kwargs: Any) -> Order | None:
     """Update an existing order record by its ID.
 
     Args:

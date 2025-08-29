@@ -33,7 +33,7 @@ class Drone(Base):
     """Drone model.
 
     Attributes:
-    - id: The primary key for the drone.
+    - drone_id: The primary key for the drone.
     - status: The current status of the drone, using the DroneStatus enum.
     - max_battery: The maximum battery capacity in mAh.
     - cur_battery: The current battery level in mAh.
@@ -45,7 +45,7 @@ class Drone(Base):
     """
 
     __tablename__ = "drones"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    drone_id = Column(Integer, primary_key=True, autoincrement=True)
     status = Column(SQLEnum(DroneStatus), nullable=False, default=DroneStatus.IDLE)
 
     max_battery = Column(Float, nullable=False)
@@ -61,8 +61,7 @@ class Drone(Base):
     def __init__(self, **kwargs: Any) -> None:
         """Initializes a Drone instance.
 
-        This constructor accepts keyword arguments to set the attributes of the Drone
-        model.
+        This constructor accepts keyword arguments to set the attributes of the Drone model.
 
         :param kwargs: Keyword arguments to initialize the drone.
         :return: None
