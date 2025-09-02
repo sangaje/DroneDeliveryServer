@@ -1,5 +1,7 @@
 """TODO: Add a description of the module here."""
 
+from typing import Any
+
 from app.models.drone import Drone
 from app.services.controller.database import SessionLocal
 
@@ -76,7 +78,7 @@ class DroneDeletionError(DroneServiceError):
         super().__init__(msg)
 
 
-def create_drone(**kwargs: dict) -> Drone | None:
+def create_drone(**kwargs: Any) -> Drone:
     """Create a new drone record in the database.
 
     Args:
@@ -110,7 +112,7 @@ def get_drone(drone_id: int) -> Drone | None:
     """
     db = SessionLocal()
     try:
-        return db.query(Drone).filter(Drone.id == drone_id).first()
+        return db.query(Drone).filter(Drone.drone_id == drone_id).first()
     except Exception as e:
         raise DroneNotFoundError from e
     finally:
@@ -132,7 +134,7 @@ def get_all_drones() -> list[Drone] | None:
         db.close()
 
 
-def update_drone(drone_id: int, **kwargs: dict) -> Drone | None:
+def update_drone(drone_id: int, **kwargs: Any) -> Drone | None:
     """Update an existing drone record by its ID.
 
     Args:
@@ -144,7 +146,7 @@ def update_drone(drone_id: int, **kwargs: dict) -> Drone | None:
     """
     db = SessionLocal()
     try:
-        drone = db.query(Drone).filter(Drone.id == drone_id).first()
+        drone = db.query(Drone).filter(Drone.drone_id == drone_id).first()
 
         if not drone:
             return None
@@ -174,7 +176,7 @@ def delete_drone(drone_id: int) -> bool:
     """
     db = SessionLocal()
     try:
-        drone = db.query(Drone).filter(Drone.id == drone_id).first()
+        drone = db.query(Drone).filter(Drone.drone_id == drone_id).first()
 
         if not drone:
             return False

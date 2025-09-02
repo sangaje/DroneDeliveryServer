@@ -1,9 +1,10 @@
 """TODO: Add docstring for the module."""
 
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer
+from sqlalchemy import Column, DateTime, Enum as SQLEnum, Float, ForeignKey, Integer
 
 from app.models.base import Base
 
@@ -50,7 +51,7 @@ class Order(Base):
     __tablename__ = "orders"
     order_id = Column(Integer, primary_key=True, autoincrement=True)
     drone_id = Column(Integer, ForeignKey("drones.drone_id"))
-    order_status = Column(OrderStatus, nullable=False, default=OrderStatus.PENDING)
+    order_status = Column(SQLEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
 
     receive_lat = Column(Float, nullable=False)
     receive_lon = Column(Float, nullable=False)
@@ -66,8 +67,7 @@ class Order(Base):
     def __init__(self, **kwargs: Any) -> None:
         """Initializes an Order instance.
 
-        This constructor accepts keyword arguments to set the attributes of the Order
-        model.
+        This constructor accepts keyword arguments to set the attributes of the Order model.
 
         :param kwargs: Keyword arguments to initialize the order.
         :return: None
