@@ -18,3 +18,8 @@ DEFAULT_DRONE_GROUP_PATH = (
 )
 
 DEFAULT_SETTINGS_PATH = "app/configs/default_settings.json"  # Default path for AirSim settings
+
+
+GROUP_CONFIG = "GroupConfig"
+DRONE_CONFIG_KEY = "DroneConfig"
+SPACING = 5.0

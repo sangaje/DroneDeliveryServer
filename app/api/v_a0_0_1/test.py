@@ -1,10 +1,4 @@
-"""index.py - Main router for the web application.
-
-This module defines the root endpoint for the web application and serves the main index page.
-
-Functions:
-- get_index: Handles GET requests to the root endpoint and returns the index page.
-"""
+"""API endpoints for testing purposes."""
 
 from typing import Any
 from urllib.parse import quote

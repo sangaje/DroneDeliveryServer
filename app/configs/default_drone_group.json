@@ -2,9 +2,9 @@
     "GroupConfig" : {
         "DroneCount": 1,
         "CenterOfGroup": {
-          "X": 0,
-          "Y": 0,
-          "Z": 0
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 10.0
         }
     },
     "DroneConfig": {
@@ -17,11 +17,8 @@
         "AllowAPIAlways": true,
         "EnableTrace": false,
         "RC": {
-        "RemoteControlID": 0,
-        "AllowAPIWhenDisconnected": false
-        },
-        "Cameras": {
-
+            "RemoteControlID": 0,
+            "AllowAPIWhenDisconnected": false
         }
     }
 }
