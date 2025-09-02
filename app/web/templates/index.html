@@ -37,6 +37,16 @@
 
         <h2>🚀 Download AirSim settings file</h2>
         <p>AirSim 설정 파일을 다운로드 하려면 아래 버튼을 클릭하세요.</p>
+        <p>또한 airsim 실행 을 위해 아래와 같이 실행하세요</p>
+        <div>
+            <p>"airsim -settings=[downloaded-settings-path] -windowed -ResX=1280 -ResY=720"</p>
+        </div>
+        <div>
+            <p>예시 (windows): </p>
+            <p>".\Airsim_Basic.exe -settings="C:\Users\test\Downloads\settings.json"" </p>
+            <p>optional: 성능을 위해 "-windowed -ResX=1280 -ResY=720"을 추가</p>
+        </div>
+
 
         <form id="config-form" method="get" action="/download_airsim_settings">
             <button type="submit" class="btn-link">🚀 download</button><br>
