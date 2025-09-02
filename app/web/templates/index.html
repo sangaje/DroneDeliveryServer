@@ -35,11 +35,21 @@
             형태로 제공합니다. FastAPI는 비동기 I/O 처리를 지원함으로써 고성능 API 서버 구현에 적합하고, 자동 OpenAPI 문서 생성을 통해 개발자 친화적인 환경을 제공합니다.
         </p>
 
-        <h2>🚀 Launch AirSim</h2>
-        <p>AirSim을 실행하려면 아래 버튼을 클릭하세요.</p>
+        <h2>🚀 Download AirSim settings file</h2>
+        <p>AirSim 설정 파일을 다운로드 하려면 아래 버튼을 클릭하세요.</p>
+        <p>또한 airsim 실행 을 위해 아래와 같이 실행하세요</p>
+        <div>
+            <p>"airsim -settings=[downloaded-settings-path] -windowed -ResX=1280 -ResY=720"</p>
+        </div>
+        <div>
+            <p>예시 (windows): </p>
+            <p>".\Airsim_Basic.exe -settings="C:\Users\test\Downloads\settings.json"" </p>
+            <p>optional: 성능을 위해 "-windowed -ResX=1280 -ResY=720"을 추가</p>
+        </div>
 
-        <form id="config-form" method="get" action="/airsim/launch">
-            <button type="submit" class="btn-link">🚀 Launch!</button><br>
+
+        <form id="config-form" method="get" action="/download_airsim_settings">
+            <button type="submit" class="btn-link">🚀 download</button><br>
             <label for="config_name">Airsim Config 선택:</label>
             <select name="config_name" id="config_name" required>
                 {% for name in airsim_config_names %}
@@ -59,19 +69,6 @@
                 </div>
             </div>
         </form>
-
-        <h2>📂 Load Simulation Session</h2>
-        <form id="config-form" method="get" action="/airsim/launch">
-            <label for="config_name">Session 불러오기:</label>
-            <select name="config_name" id="config_name" required>
-                {% for name in simulation_sessions %}
-                <option value="{{ name }}" {% if name==session_name %}selected{% endif %}>{{ name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn-link">🚀 Launch!</button>
-        </form>
-
-
 
         <h2>🛠️ Configure AirSim</h2>
         <p>아래의 링크를 통해 AirSim을 설정할 수 있습니다. 처음 사용하시는 경우, 기본 설정을 먼저 해주시길 바랍니다.</p>

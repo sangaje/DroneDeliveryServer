@@ -5,7 +5,9 @@ This module provides functions to load and manage AirSim-specific configurations
 
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
+from typing import NamedTuple
 
 from app.configs import (
     AppConfig,
@@ -21,7 +23,10 @@ from .constants import (
     DEFAULT_DRONE_GROUP,
     DEFAULT_DRONE_GROUP_PATH,
     DEFAULT_SETTINGS_PATH,
+    DRONE_CONFIG_KEY,
     DRONE_GROUP_KEY,
+    GROUP_CONFIG,
+    SPACING,
 )
 
 
@@ -162,6 +167,8 @@ class _BaseAirSimConfig(Config):
 class AirSimSettings(_BaseAirSimConfig):
     """Class to handle AirSim settings configurations."""
 
+    _drone_group_configs: list[DroneGroupConfig]
+
     def __init__(self, config_name: str = "") -> None:
         """Initialize the AirSimSettings instance.
 
@@ -173,7 +180,28 @@ class AirSimSettings(_BaseAirSimConfig):
             default_key=DEFAULT_AIRSIM_CONFIG_KEY,
             custum_key=CUSTOM_AIRSIM_CONFIG_KEY,
         )
+        self._drone_group_configs = []
         self["SimMode"] = "Multirotor"
+
+    def add_drone_group(self, drone_group: DroneGroupConfig) -> None:
+        """Add a DroneGroupConfig instance to the AirSimSettings.
+
+        :param drone_group: The DroneGroupConfig instance to add.
+        """
+        self._drone_group_configs.append(drone_group)
+
+    def build_settings(self) -> dict:
+        """Build the complete AirSim settings dictionary including drone groups.
+
+        :return: The complete AirSim settings as a dictionary.
+        """
+        settings = self.to_dict()
+        settings["Vehicles"] = {}
+        for drone_group in self._drone_group_configs:
+            for k, v in drone_group.build().items():
+                settings["Vehicles"][k] = v
+
+        return settings
 
 
 class DroneGroupConfig(_BaseAirSimConfig):
@@ -189,6 +217,61 @@ class DroneGroupConfig(_BaseAirSimConfig):
             default_key=DEFAULT_DRONE_GROUP,
             custum_key=DRONE_GROUP_KEY,
         )
+
+    def build(self) -> dict:
+        """Build the Drone Group configuration dictionary.
+
+        :return: The Drone Group configuration as a dictionary.
+        """
+
+        class Vector3(NamedTuple):
+            """Representation of a 3D vector."""
+
+            x: float
+            y: float
+            z: float
+
+            def __str__(self) -> str:
+                """Return a string representation of the vector."""
+                return f"({self.x}, {self.y}, {self.z})"
+
+        config = self.to_dict()
+        group_config: dict = config.get(GROUP_CONFIG, {})
+        drone_config: dict = config.get(DRONE_CONFIG_KEY, {})
+
+        drone_count = group_config.get("DroneCount", 0)
+        group_center: dict = group_config.get("CenterOfGroup", {})
+
+        center = Vector3(
+            x=group_center.get("X", 0.0), y=group_center.get("Y", 0.0), z=group_center.get("Z", 0.0)
+        )
+        offset = 1
+        drone_config["X"] = center.x
+        drone_config["Y"] = center.y
+        drone_config["Z"] = center.z
+        retval = {f"{self.name}-{str(center)}": deepcopy(drone_config)}
+        drone_count -= 1
+        while drone_count > 0:
+            for x in range(-offset, offset + 1):
+                if drone_count <= 0:
+                    break
+
+                y_loc = (
+                    range(-offset, offset + 1) if x == -offset or x == offset else (-offset, offset)
+                )
+
+                for y in y_loc:
+                    if drone_count <= 0:
+                        break
+
+                    loc = Vector3(x=center.x + x * SPACING, y=center.y + y * SPACING, z=center.z)
+                    drone_config["X"] = loc.x
+                    drone_config["Y"] = loc.y
+                    drone_config["Z"] = loc.z
+                    retval[f"{self.name}-{str(loc)}"] = deepcopy(drone_config)
+                    drone_count -= 1
+
+        return retval
 
 
 def render_form(data: dict, prefix: str = "", readonly: bool = False) -> str:

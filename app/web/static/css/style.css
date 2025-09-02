@@ -108,7 +108,7 @@ ul.links li {
 border: 2px solid #ddd;
 border-radius: 12px;
 padding: 1.5rem;
-background-color: #db1010;
+background-color: rgb(255, 122, 122);
 box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 margin: 1rem 0;
 }

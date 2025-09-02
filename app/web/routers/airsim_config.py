@@ -18,11 +18,7 @@ templates = Jinja2Templates(directory="app/web/templates")
 
 @router.get("/", response_class=HTMLResponse)
 async def get_airsim_config(request: Request, config_name: str = Query("")) -> Any:
-    """AirSim configuration endpoint.
-
-    :param config_name: The name of the AirSim configuration to load. Returns a page with
-        instructions on how to configure AirSim.
-    """
+    """AirSim configuration endpoint."""
     settings = AirSimSettings(config_name=config_name)
     context = {
         "request": request,
@@ -61,11 +57,7 @@ async def post_airsim_config(request: Request) -> Any:
 
 @router.get("/drone_group", response_class=HTMLResponse)
 async def get_drone_config(request: Request, config_name: str = Query("")) -> Any:
-    """AirSim configuration endpoint.
-
-    :param config_name: The name of the AirSim configuration to load. Returns a page with
-        instructions on how to configure AirSim.
-    """
+    """AirSim configuration endpoint."""
     drone_group = DroneGroupConfig(config_name=config_name)
     context = {
         "request": request,
