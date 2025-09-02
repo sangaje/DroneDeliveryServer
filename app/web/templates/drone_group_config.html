@@ -9,12 +9,12 @@
 {% block content %}
 <body>
     <header>
-        <h1>🛠️ Configure AirSim</h1>
+        <h1>🛠️ Configure AirSim Drone Group</h1>
     </header>
     <main>
-        <h1>⚙️ AirSim Settings</h1>
+        <h1>⚙️ Drone Group Settings</h1>
         <!-- templates/airsim_config.html -->
-        <form method="post" action="/airsim/config">
+        <form method="post" action="/airsim/config/drone_group">
             <div style="margin-bottom: 16px;">
                 <label for="config_name">Configuration Name</label>
                 <input type="text" id="config_name" name="config_name" value="{{config_name | default('')}}" required>

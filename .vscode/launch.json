@@ -11,6 +11,16 @@
             "program": "${workspaceFolder}/Launch.py",
             "console": "integratedTerminal",
             "jinja": true
+        },
+        {
+            "name": "🐍 Pytest: current file",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-s", "${file}"],
+            "justMyCode": false,
+            "console": "integratedTerminal"
         }
     ]
+    
 }

@@ -8,6 +8,35 @@ from sqlalchemy.orm import sessionmaker
 
 from app.models.base import Base
 
+# Custom exception for database connection errors
+
+
+class DatabaseConnectionError(Exception):
+    """Exception raised when there is a database connection error."""
+
+    def __init__(self, msg: str = "Could not connect to the database.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
+class FileNotFoundError(Exception):
+    """Exception raised when a file is not found."""
+
+    def __init__(self, msg: str = "File not found.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
 # Define the base directory and database URL
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'local.db')}"
@@ -33,7 +62,6 @@ def drop_table(table_name: str) -> None:
     meta = MetaData()
     table = Table(table_name, meta, autoload_with=engine)
     table.drop(engine)
-    print(f"Table '{table_name}' dropped successfully.")
 
 
 def drop_all_tables() -> None:
@@ -47,8 +75,7 @@ def test_connection() -> bool:
     try:
         db.execute(text("SELECT 1"))
     except Exception as e:
-        print(f"Database connection failed: {e}")
-        return False
+        raise DatabaseConnectionError from e
     finally:
         db.close()
     return True
@@ -58,11 +85,8 @@ def get_db_size() -> int:
     """Get the size of the database file in bytes."""
     db_path = os.path.join(BASE_DIR, "local.db")
     if not os.path.exists(db_path):
-        print("Database file does not exist.")
-        return 0
-    size = os.path.getsize(db_path)
-    print(f"Database size: {size} bytes")
-    return size
+        raise FileNotFoundError
+    return os.path.getsize(db_path)
 
 
 def backup_db() -> None:
@@ -70,13 +94,10 @@ def backup_db() -> None:
     backup_path = os.path.join(BASE_DIR, "backup", "local_backup.db")
     os.makedirs(os.path.dirname(backup_path), exist_ok=True)
     shutil.copyfile(os.path.join(BASE_DIR, "local.db"), backup_path)
-    print(f"Database backup created at {backup_path}")
 
 
 def restore_db(backup_file: str) -> None:
     """Restore the database from a backup file."""
     if not os.path.exists(backup_file):
-        print(f"Backup file {backup_file} does not exist.")
-        return
+        raise FileNotFoundError
     shutil.copyfile(backup_file, os.path.join(BASE_DIR, "local.db"))
-    print(f"Database restored from {backup_file}")

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Drone Delivery{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- 🔹 공통 헤더 -->
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #020716; border-bottom: 1px solid #ccc;">
+  <div><strong>🚁 Drone Delivery Simulation Server</strong></div>
+  <div><a href="/" style="text-decoration: none; color: #007bff;">🏠 Go to Main</a></div>
+</header>
+
+<!-- 🔹 페이지 내용 -->
+<main style="padding: 2rem;">
+  {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

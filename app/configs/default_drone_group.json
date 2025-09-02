@@ -1,0 +1,24 @@
+{
+    "GroupConfig" : {
+        "DroneCount": 1,
+        "CenterOfGroup": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 10.0
+        }
+    },
+    "DroneConfig": {
+        "VehicleType": "SimpleFlight",
+        "DefaultVehicleState": "Armed",
+        "AutoCreate": true,
+        "PawnPath": "",
+        "EnableCollisionPassthrough": false,
+        "EnableCollisions": true,
+        "AllowAPIAlways": true,
+        "EnableTrace": false,
+        "RC": {
+            "RemoteControlID": 0,
+            "AllowAPIWhenDisconnected": false
+        }
+    }
+}

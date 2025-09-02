@@ -4,6 +4,78 @@ from app.models.drone import Drone
 from app.services.controller.database import SessionLocal
 
 
+# Custom exceptions for DroneService
+class DroneServiceError(Exception):
+    """Custom exception for DroneService errors."""
+
+    pass
+
+
+class DroneCreationError(DroneServiceError):
+    """Exception raised when there is an error creating a drone."""
+
+    def __init__(self, msg: str = "Error creating drone.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
+class DroneNotFoundError(DroneServiceError):
+    """Exception raised when a drone is not found."""
+
+    def __init__(self, msg: str = "Drone not found.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
+class DroneRetrievalError(DroneServiceError):
+    """Exception raised when there is an error retrieving drones."""
+
+    def __init__(self, msg: str = "Error retrieving drones.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
+class DroneUpdateError(DroneServiceError):
+    """Exception raised when there is an error updating a drone."""
+
+    def __init__(self, msg: str = "Error updating drone.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
+class DroneDeletionError(DroneServiceError):
+    """Exception raised when there is an error deleting a drone."""
+
+    def __init__(self, msg: str = "Error deleting drone.") -> None:
+        """Initialize the exception with a custom message.
+
+        Args:
+            msg (str): Custom error message.
+        """
+        self.msg = msg
+        super().__init__(msg)
+
+
 def create_drone(**kwargs: dict) -> Drone | None:
     """Create a new drone record in the database.
 
@@ -21,8 +93,7 @@ def create_drone(**kwargs: dict) -> Drone | None:
         db.refresh(drone)
     except Exception as e:
         db.rollback()
-        print(f"Error creating drone: {e}")
-        return None
+        raise DroneCreationError from e
     finally:
         db.close()
     return drone
@@ -41,13 +112,12 @@ def get_drone(drone_id: int) -> Drone | None:
     try:
         return db.query(Drone).filter(Drone.id == drone_id).first()
     except Exception as e:
-        print(f"Error retrieving drone: {e}")
-        return None
+        raise DroneNotFoundError from e
     finally:
         db.close()
 
 
-def get_all_drones() -> list[Drone]:
+def get_all_drones() -> list[Drone] | None:
     """Retrieve all drone records from the database.
 
     Returns:
@@ -57,8 +127,7 @@ def get_all_drones() -> list[Drone]:
     try:
         return db.query(Drone).all()
     except Exception as e:
-        print(f"Error retrieving all drones: {e}")
-        return []
+        raise DroneRetrievalError from e
     finally:
         db.close()
 
@@ -76,6 +145,7 @@ def update_drone(drone_id: int, **kwargs: dict) -> Drone | None:
     db = SessionLocal()
     try:
         drone = db.query(Drone).filter(Drone.id == drone_id).first()
+
         if not drone:
             return None
 
@@ -84,28 +154,37 @@ def update_drone(drone_id: int, **kwargs: dict) -> Drone | None:
 
         db.commit()
         db.refresh(drone)
-        return drone
+    except Exception as e:
+        db.rollback()
+        raise DroneUpdateError from e
     finally:
         db.close()
 
+    return drone
 
-def delete_drone(drone_id: int) -> Drone | None:
+
+def delete_drone(drone_id: int) -> bool:
     """Delete a drone record by its ID.
 
     Args:
         drone_id (int): The ID of the drone to delete.
 
     Returns:
-        Drone: The deleted drone object if successful, None otherwise.
+        bool: True if deletion was successful, False otherwise.
     """
     db = SessionLocal()
     try:
         drone = db.query(Drone).filter(Drone.id == drone_id).first()
+
         if not drone:
-            return None
+            return False
 
         db.delete(drone)
         db.commit()
-        return drone
+    except Exception as e:
+        db.rollback()
+        raise DroneDeletionError from e
     finally:
         db.close()
+
+    return True
