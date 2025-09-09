@@ -69,7 +69,15 @@ class Order(Base):
 
         This constructor accepts keyword arguments to set the attributes of the Order model.
 
-        :param kwargs: Keyword arguments to initialize the order.
-        :return: None
+        :param drone_id(Integer): The foreign key linking to the assigned drone.
+        :param order_status(SQLEnum(OrderStatus)): The current status of the order.
+        :param receive_lat(Float): The latitude of the pickup location.
+        :param receive_lon(Float): The longitude of the pickup location.
+        :param receive_alt(Float): The altitude of the pickup location.
+        :param deliver_lat(Float): The latitude of the delivery destination.
+        :param deliver_lon(Float): The longitude of the delivery destination.
+        :param deliver_alt(Float): The altitude of the delivery destination.
+        :param assigned_at(DateTime): The timestamp when the order was created.
+        :param completed_at(DateTime): The timestamp when the order was completed.
         """
         super().__init__(**kwargs)

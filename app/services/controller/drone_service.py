@@ -81,11 +81,18 @@ class DroneDeletionError(DroneServiceError):
 def create_drone(**kwargs: Any) -> Drone:
     """Create a new drone record in the database.
 
-    Args:
-        **kwargs: Keyword arguments representing drone attributes.
+    This function accepts keyword arguments to set the attributes of the Drone model.
 
-    Returns:
-        Drone: The created drone object if successful, None otherwise.
+    :param status(DroneStatus): The current status of the drone.
+    :param max_battery(float): The maximum battery capacity in mAh.
+    :param cur_battery(float): The current battery level in mAh.
+    :param max_payload(float): The maximum payload weight the drone can carry in kg.
+    :param cur_payload(float): The current payload weight the drone is carrying in kg.
+    :param cur_lat(float): The current latitude of the drone.
+    :param cur_lon(float): The current longitude of the drone.
+    :param cur_alt(float): The current altitude of the drone in meters.
+    :return: The created drone object.
+    :raises DroneCreationError: If the drone creation fails.
     """
     db = SessionLocal()
     drone = Drone(**kwargs)
@@ -137,12 +144,13 @@ def get_all_drones() -> list[Drone] | None:
 def update_drone(drone_id: int, **kwargs: Any) -> Drone | None:
     """Update an existing drone record by its ID.
 
-    Args:
-        drone_id (int): The ID of the drone to update.
-        **kwargs: Keyword arguments representing the attributes to update.
+    This function accepts keyword arguments to update the attributes of the Drone model.
 
-    Returns:
-        Drone: The updated drone object if successful, None otherwise.
+    :param drone_id(int): The ID of the drone to update.
+    :param status(DroneStatus): The new status of the drone.
+    :param cur_battery(float): The new battery level.
+    :return: The updated drone object if successful, None otherwise.
+    :raises DroneUpdateError: If the drone update fails.
     """
     db = SessionLocal()
     try:

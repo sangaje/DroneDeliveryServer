@@ -63,7 +63,13 @@ class Drone(Base):
 
         This constructor accepts keyword arguments to set the attributes of the Drone model.
 
-        :param kwargs: Keyword arguments to initialize the drone.
-        :return: None
+        :param status(SQLEnum(DroneStatus)): The current status of the drone.
+        :param max_battery(Float): The maximum battery capacity in mAh.
+        :param cur_battery(Float): The current battery level in mAh.
+        :param max_payload(Float): The maximum payload weight the drone can carry in kg.
+        :param cur_payload(Float): The current payload weight the drone is carrying in kg.
+        :param cur_lat(Float): The current latitude of the drone.
+        :param cur_lon(Float): The current longitude of the drone.
+        :param cur_alt(Float): The current altitude of the drone in meters.
         """
         super().__init__(**kwargs)

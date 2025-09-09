@@ -37,6 +37,25 @@ class AirSimController:
         self.client.confirmConnection()
         self.client.enableApiControl(True)
 
+    def get_all_drones_info(self) -> dict[str, airsim.MultirotorState]:
+        """Get the state of all drones in the simulation.
+
+        Returns:
+            A dictionary where keys are drone names and values are their states.
+        """
+        vehicle_names = self.client.listVehicles()
+        drones_info = {}
+
+        for name in vehicle_names:
+            self.client.enableApiControl(True, vehicle_name=name)
+            drones_info[name] = self.client.getMultirotorState(vehicle_name=name)
+
+        return drones_info
+
+    def get_home_geo_point(self) -> airsim.GeoPoint:
+        """Get the home geo point of the simulation origin."""
+        return self.client.getHomeGeoPoint()
+
     async def takeoff(self) -> None:
         """Command the drone to take off."""
         await self.client.takeoffAsync().join()

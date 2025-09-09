@@ -81,11 +81,18 @@ class OrderDeletionError(OrderServiceError):
 def create_order(**kwargs: Any) -> Order:
     """Create a new order record in the database.
 
-    Args:
-        **kwargs: Keyword arguments representing order attributes.
+    This function accepts keyword arguments to set the attributes of the Order model.
 
-    Returns:
-        Order: The created order object if successful, None otherwise.
+    :param drone_id(Integer): The foreign key linking to the assigned drone.
+    :param order_status(OrderStatus): The current status of the order.
+    :param receive_lat(float): The latitude of the pickup location.
+    :param receive_lon(float): The longitude of the pickup location.
+    :param receive_alt(float): The altitude of the pickup location.
+    :param deliver_lat(float): The latitude of the delivery destination.
+    :param deliver_lon(float): The longitude of the delivery destination.
+    :param deliver_alt(float): The altitude of the delivery destination.
+    :return: The created order object.
+    :raises OrderCreationError: If the order creation fails.
     """
     db = SessionLocal()
     order = Order(**kwargs)
@@ -108,7 +115,7 @@ def get_order(order_id: int) -> Order | None:
         order_id (int): The ID of the order to retrieve.
 
     Returns:
-        Order: The order object if found.
+        Order | None: The order object if found, otherwise None.
     """
     db = SessionLocal()
     try:
@@ -123,7 +130,7 @@ def get_all_orders() -> list[Order]:
     """Retrieve all order records from the database.
 
     Returns:
-        List[Order]: A list of all order objects.
+        list[Order]: A list of all order objects. An empty list is returned if no orders are found.
     """
     db = SessionLocal()
     try:
@@ -137,12 +144,14 @@ def get_all_orders() -> list[Order]:
 def update_order(order_id: int, **kwargs: Any) -> Order | None:
     """Update an existing order record by its ID.
 
-    Args:
-        order_id (int): The ID of the order to update.
-        **kwargs: Keyword arguments representing the attributes to update.
+    This function accepts keyword arguments to update the attributes of the Order model.
 
-    Returns:
-        Order: The updated order object if successful, None otherwise.
+    :param order_id(int): The ID of the order to update.
+    :param drone_id(int): The new drone ID to assign.
+    :param order_status(OrderStatus): The new status of the order.
+    :param completed_at(datetime): The timestamp when the order was completed.
+    :return: The updated order object if successful, None otherwise.
+    :raises OrderUpdateError: If the order update fails.
     """
     db = SessionLocal()
     try:
