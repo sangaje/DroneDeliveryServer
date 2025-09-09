@@ -61,8 +61,7 @@ class Drone(Base):
     def __init__(self, **kwargs: Any) -> None:
         """Initializes a Drone instance.
 
-        This constructor accepts keyword arguments to set the attributes of the Drone
-        model.
+        This constructor accepts keyword arguments to set the attributes of the Drone model.
 
         :param kwargs: Keyword arguments to initialize the drone.
         :return: None

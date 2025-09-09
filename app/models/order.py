@@ -66,8 +66,7 @@ class Order(Base):
     def __init__(self, **kwargs: Any) -> None:
         """Initializes an Order instance.
 
-        This constructor accepts keyword arguments to set the attributes of the Order
-        model.
+        This constructor accepts keyword arguments to set the attributes of the Order model.
 
         :param kwargs: Keyword arguments to initialize the order.
         :return: None

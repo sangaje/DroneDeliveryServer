@@ -1,37 +1,48 @@
 """TODO: Launch AirSim simulation with specified configurations."""
 
-from time import time
-
 from app.configs import Config
+from app.services.controller.database import drop_all_tables, init_db
+from app.services.controller.drone_service import create_drone
+from app.utils.airsimutils import Drone, connect_client, create_drones_list, disconnect_client
 
-from .config import AirSimConfig, DroneGroupConfig
+from .config import AirSimConfig
 
 
 class SimulationSession(Config):
     """Class to manage a simulation session with AirSim."""
 
     _airsim_config: AirSimConfig
-    _drone_group_config: list[DroneGroupConfig]
+    _drones: list[Drone]
 
     def __init__(
         self,
         airsim_config: AirSimConfig,
-        drone_group_config: DroneGroupConfig | list[DroneGroupConfig],
-    ):
+    ) -> None:
         """Initialize the simulation session with AirSim and drone group configurations.
 
         :param airsim_config: Configuration for AirSim.
         :param drone_group_config: Configuration for the drone group.
         """
-        self.airsim_config = airsim_config
+        self._drones = []
 
-        if isinstance(drone_group_config, DroneGroupConfig):
-            drone_group_config = [drone_group_config]
-        else:
-            self.drone_group_config = drone_group_config
-        self._session_id = hash(time())
+        # Set up AirSim client
+        self._airsim_config = airsim_config
+        target_ip = self._airsim_config["LocalHostIp"]
+        target_port = self._airsim_config["ApiServerPort"]
 
-    # def launch(self) -> Any:
-    #     """Launch the AirSim simulation with the specified configurations."""
-    #     settings = AirSimSettings(self.airsim_config, self.drone_group_config)
-    #     return settings.launch_simulation()
+        connect_client(target_ip, target_port)
+        self._drones = create_drones_list()
+
+        # Set up drone database
+        init_db()
+        drop_all_tables()
+
+        # Create drones in the database
+        for drone in self._drones:
+            # TODO: change to use drone.id when constructor is fixed
+            _ = drone
+            create_drone()
+
+    def end(self) -> None:
+        """End the simulation session."""
+        disconnect_client()
