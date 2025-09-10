@@ -1,9 +1,10 @@
 """TODO: Add docstring for the module."""
 
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer
+from sqlalchemy import Column, DateTime, Enum as SQLEnum, Float, ForeignKey, Integer
 
 from app.models.base import Base
 
@@ -50,7 +51,7 @@ class Order(Base):
     __tablename__ = "orders"
     order_id = Column(Integer, primary_key=True, autoincrement=True)
     drone_id = Column(Integer, ForeignKey("drones.drone_id"))
-    order_status = Column(OrderStatus, nullable=False, default=OrderStatus.PENDING)
+    order_status = Column(SQLEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
 
     receive_lat = Column(Float, nullable=False)
     receive_lon = Column(Float, nullable=False)
@@ -68,7 +69,15 @@ class Order(Base):
 
         This constructor accepts keyword arguments to set the attributes of the Order model.
 
-        :param kwargs: Keyword arguments to initialize the order.
-        :return: None
+        :param drone_id(Integer): The foreign key linking to the assigned drone.
+        :param order_status(SQLEnum(OrderStatus)): The current status of the order.
+        :param receive_lat(Float): The latitude of the pickup location.
+        :param receive_lon(Float): The longitude of the pickup location.
+        :param receive_alt(Float): The altitude of the pickup location.
+        :param deliver_lat(Float): The latitude of the delivery destination.
+        :param deliver_lon(Float): The longitude of the delivery destination.
+        :param deliver_alt(Float): The altitude of the delivery destination.
+        :param assigned_at(DateTime): The timestamp when the order was created.
+        :param completed_at(DateTime): The timestamp when the order was completed.
         """
         super().__init__(**kwargs)
