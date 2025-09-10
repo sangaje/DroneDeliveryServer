@@ -78,11 +78,12 @@ class DroneDeletionError(DroneServiceError):
         super().__init__(msg)
 
 
-def create_drone(**kwargs: Any) -> Drone:
+def create_drone(drone_id: int, **kwargs: Any) -> Drone:
     """Create a new drone record in the database.
 
     This function accepts keyword arguments to set the attributes of the Drone model.
 
+    :param drone_id(int): The ID of the drone to create.
     :param status(DroneStatus): The current status of the drone.
     :param max_battery(float): The maximum battery capacity in mAh.
     :param cur_battery(float): The current battery level in mAh.
@@ -95,7 +96,7 @@ def create_drone(**kwargs: Any) -> Drone:
     :raises DroneCreationError: If the drone creation fails.
     """
     db = SessionLocal()
-    drone = Drone(**kwargs)
+    drone = Drone(drone_id=drone_id, **kwargs)
     try:
         db.add(drone)
         db.commit()
