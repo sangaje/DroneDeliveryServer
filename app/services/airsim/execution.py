@@ -10,11 +10,12 @@ from app.utils.airsimutils import (
     create_drones_list,
     disconnect_client,
 )
+from models.order import Order
 
 from .config import AirSimConfig
 
 
-class _SimulationSession(Config):
+class SimulationSession(Config):
     """Class to manage a simulation session with AirSim."""
 
     _airsim_config: AirSimConfig
@@ -57,9 +58,18 @@ class _SimulationSession(Config):
                 cur_alt=drone.state.gps_location.altitude,
             )
 
+    def enqueue_order(self, order: Order) -> None:
+        """Enqueue an order to a drone.
+
+        :param order: Order to be enqueued.
+        """
+        if not self._drones:
+            msg = "No drones available in the AirSim simulation."
+            raise ConnectionError(msg)
+        # Simple round-robin assignment for demonstration purposes
+        drone: Drone = self._drones[order.order_id % len(self._drones)]
+        drone.dispatch_order(order)
+
     def end(self) -> None:
         """End the simulation session."""
         disconnect_client()
-
-
-simulation_session: _SimulationSession | None = None

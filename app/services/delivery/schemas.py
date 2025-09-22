@@ -1,7 +1,7 @@
 """This module defines the Pydantic schemas for handling delivery order requests.
 
-These schemas are used for data validation and serialization when processing
-incoming API requests related to delivery orders.
+These schemas are used for data validation and serialization when processing incoming API requests
+related to delivery orders.
 """
 
 from pydantic import BaseModel, Field

@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 from logging import info
+from queue import Queue
+from threading import Event, Thread
 
 from cosysairsim import MultirotorClient, MultirotorState
+from msgpackrpc.session import Future
+
+from app.models.order import Order, OrderStatus
 
 _client: MultirotorClient | None = None
 
@@ -57,6 +62,7 @@ def create_drones_list() -> list[Drone]:
             state = _client.getMultirotorState(vehicle_name=drone)
             if isinstance(state, MultirotorState):
                 retval.append(Drone(vehicle_name=drone))
+        # TODO What exceptions can be raised here? Fuck
         except Exception:
             pass
     return retval
@@ -68,18 +74,32 @@ class Drone:
     _vehicle_name: str
     _client: MultirotorClient
     _state: MultirotorState
+    _orders: Queue[Order]
+    _current_order: Order | None
+
+    ### MP Drone Worker ###
+    _worker: Thread | None
+    _stop_event: Event | None
 
     def __init__(self, vehicle_name: str) -> None:
         """Initialize the Drone object.
 
         :param vehicle_name: The name of the drone in the AirSim simulation.
         """
+        ### Initialize Drone attributes ###
         global _client
         self._vehicle_name = vehicle_name
         if not _client:
             raise ConnectionError(_client)
         self._client = _client
         self.update_state()
+        self._orders = Queue()
+        self._current_order = None
+
+        ### Initialize Drone Worker ###
+        self._worker = Thread(target=self._delivery_loop, name=self._vehicle_name, daemon=True)
+        self._stop_event = Event()
+        self._worker.start()
 
     @property
     def vehicle_name(self) -> str:
@@ -119,3 +139,101 @@ class Drone:
     def disarm(self) -> None:
         """Disarm the drone."""
         self._client.armDisarm(False, vehicle_name=self._vehicle_name)
+
+    ### Drone operations ###
+    def dispatch_order(self, order: Order) -> None:
+        """Dispatch the drone to execute the given order.
+
+        :param order: The order to be executed by the drone.
+        """
+        # TODO: Improve dispatch logic
+        order.drone_id = self.id
+        order.order_status = OrderStatus.ACCEPTED
+        self._orders.put(order)
+
+    @property
+    def current_orders_count(self) -> int:
+        """Get the number of orders currently assigned to the drone."""
+        return self._orders.qsize() + (1 if self._current_order else 0)
+
+    @property
+    def current_order(self) -> Order | None:
+        """Get the current order being executed by the drone."""
+        return self._current_order
+
+    @property
+    def current_path(self) -> list[Order]:
+        """Get the current path of the drone as a list of GPS coordinates."""
+        retval = []
+        with self._orders.mutex:
+            if self._current_order:
+                retval.append(self._current_order)
+            retval.extend(list(self._orders.queue))
+
+        return retval
+
+    def stop(self) -> None:
+        """Stop the drone worker thread."""
+        if self._stop_event:
+            self._stop_event.set()
+        if self._worker and self._worker.is_alive():
+            self._orders.put(None)  # Unblock the queue if waiting
+            self._worker.join()
+
+    ### Drone commands ###
+    def _takeoff(self) -> Future:
+        """Command the drone to take off."""
+        return self._client.takeoffAsync(vehicle_name=self._vehicle_name)
+
+    def _land(self) -> Future:
+        """Command the drone to land."""
+        return self._client.landAsync(vehicle_name=self._vehicle_name)
+
+    def _go_to_position(
+        self, latitude: float, longitude: float, altitude: float, velocity: float
+    ) -> Future:
+        """Command the drone to go to a specific position."""
+        return self._client.moveToGPSAsync(
+            latitude, longitude, altitude, velocity, vehicle_name=self._vehicle_name
+        )
+
+    ### Drone Worker methods (ex. loop ...) ###
+    def _delivery_loop(self) -> None:
+        """Main loop for processing orders."""
+
+        def pickup(order: Order) -> None:
+            self._takeoff().join()
+            self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt, 5).join()
+            self._land().join()
+            order.order_status = OrderStatus.RECEIVED
+            pass
+
+        def deliver(order: Order) -> None:
+            self._takeoff().join()
+            self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt, 5).join()
+            self._land().join()
+            order.order_status = OrderStatus.DELIVERED
+            pass
+
+        while not self._stop_event.is_set():
+            order = self._orders.get()
+            if order is None:
+                self._orders.task_done()
+                break
+
+            self._current_order = order
+
+            # Takeoff
+            self.enable()
+            self.arm()
+            # Go to pickup location
+            pickup(order)
+
+            # Go to delivery location
+            deliver(order)
+
+            self.disarm()
+            self.disable()
+
+            self._current_order = None
+            self._orders.task_done()
