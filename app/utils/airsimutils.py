@@ -10,6 +10,7 @@ from cosysairsim import MultirotorClient, MultirotorState
 from msgpackrpc.session import Future
 
 from app.models.order import Order, OrderStatus
+from app.services.controller.order_service import update_order
 
 _client: MultirotorClient | None = None
 
@@ -150,6 +151,7 @@ class Drone:
         order.drone_id = self.id
         order.order_status = OrderStatus.ACCEPTED
         self._orders.put(order)
+        update_order(order.order_id, order)
 
     @property
     def current_orders_count(self) -> int:
@@ -206,6 +208,7 @@ class Drone:
             self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt, 5).join()
             self._land().join()
             order.order_status = OrderStatus.RECEIVED
+            update_order(order.order_id, order)
             pass
 
         def deliver(order: Order) -> None:
@@ -213,6 +216,7 @@ class Drone:
             self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt, 5).join()
             self._land().join()
             order.order_status = OrderStatus.DELIVERED
+            update_order(order.order_id, order)
             pass
 
         while not self._stop_event.is_set():
