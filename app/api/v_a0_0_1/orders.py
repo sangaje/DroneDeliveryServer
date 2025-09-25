@@ -13,6 +13,8 @@ def create_new_order(order_request: schemas.OrderCreateRequest) -> dict | None:
     # request.json()
     try:
         created_order = service.process_new_order(order_request)
+        if not created_order.order_id or created_order.order_id is None:
+            return None
     except Exception:
         pass
 

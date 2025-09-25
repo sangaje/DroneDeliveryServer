@@ -30,7 +30,7 @@ def test_drone() -> drone_service.Drone:
         "cur_lon": 127.0,
         "cur_alt": 10.0,
     }
-    drone = drone_service.create_drone(**drone_data)
+    drone = drone_service.create_drone(drone_id=1, **drone_data)
     assert drone is not None
 
     return drone
@@ -78,10 +78,50 @@ def test_update_order(test_drone: drone_service.Drone) -> None:
     assert created_order.order_id is not None
 
     update_data = {"order_status": OrderStatus.DELIVERED}
-    updated_order = order_service.update_order(created_order.order_id, **update_data)
+    updated_order = order_service.update_order(
+        created_order.order_id, order_update=None, **update_data
+    )
     assert updated_order is not None
     assert updated_order.order_id is not None
     assert updated_order.order_status == OrderStatus.DELIVERED
+
+
+def test_update_order_with_object(test_drone: drone_service.Drone) -> None:
+    """Test updating an order with an order object."""
+    order_data = {
+        "drone_id": test_drone.drone_id,
+        "order_status": OrderStatus.PENDING,
+        "receive_lat": 37.1,
+        "receive_lon": 127.1,
+        "receive_alt": 20.0,
+        "deliver_lat": 37.2,
+        "deliver_lon": 127.2,
+        "deliver_alt": 30.0,
+    }
+    created_order = order_service.create_order(**order_data)
+    assert created_order is not None
+    assert created_order.order_id is not None
+
+    new_data = {
+        "drone_id": test_drone.drone_id,
+        "order_status": OrderStatus.ACCEPTED,
+        "receive_lat": 37.1,
+        "receive_lon": 127.1,
+        "receive_alt": 20.0,
+        "deliver_lat": 37.2,
+        "deliver_lon": 127.2,
+        "deliver_alt": 30.0,
+    }
+    new_order = order_service.create_order(**new_data)
+    assert new_order is not None
+    assert new_order.order_id is not None
+
+    updated_order = order_service.update_order(
+        order_id=created_order.order_id, order_update=new_order
+    )
+    assert updated_order is not None
+    assert updated_order.order_id is not None
+    assert updated_order.order_status == OrderStatus.ACCEPTED
 
 
 def test_delete_order(test_drone: drone_service.Drone) -> None:

@@ -142,36 +142,46 @@ def get_all_drones() -> list[Drone] | None:
         db.close()
 
 
-def update_drone(drone_id: int, **kwargs: Any) -> Drone | None:
+def update_drone(drone_id: int, drone_update: Drone | None = None, **kwargs: Any) -> Drone | None:
     """Update an existing drone record by its ID.
 
-    This function accepts keyword arguments to update the attributes of the Drone model.
+    This function can update a drone using either a Drone object or keyword arguments.
 
-    :param drone_id(int): The ID of the drone to update.
-    :param status(DroneStatus): The new status of the drone.
-    :param cur_battery(float): The new battery level.
+    :param drone_id(int): The ID of the drone to update. :param drone_update(Drone | None): A Drone
+        object with updated values.
+    :param kwargs: Keyword arguments with attributes to update.
     :return: The updated drone object if successful, None otherwise.
     :raises DroneUpdateError: If the drone update fails.
     """
     db = SessionLocal()
     try:
-        drone = db.query(Drone).filter(Drone.drone_id == drone_id).first()
+        db_drone = db.query(Drone).filter(Drone.drone_id == drone_id).first()
 
-        if not drone:
+        if not db_drone:
             return None
 
-        for key, value in kwargs.items():
-            setattr(drone, key, value)
+        update_data = {}
+        if drone_update:
+            update_data = {
+                c.name: getattr(drone_update, c.name)
+                for c in drone_update.__table__.columns
+                if c.name != "drone_id" and getattr(drone_update, c.name) is not None
+            }
+
+        update_data.update(kwargs)
+
+        for key, value in update_data.items():
+            setattr(db_drone, key, value)
 
         db.commit()
-        db.refresh(drone)
+        db.refresh(db_drone)
     except Exception as e:
         db.rollback()
         raise DroneUpdateError from e
     finally:
         db.close()
 
-    return drone
+    return db_drone
 
 
 def delete_drone(drone_id: int) -> bool:

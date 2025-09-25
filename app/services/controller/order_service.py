@@ -141,36 +141,48 @@ def get_all_orders() -> list[Order]:
         db.close()
 
 
-def update_order(order_id: int, **kwargs: Any) -> Order | None:
+def update_order(
+    order_id: int, order_update: Order | None = None, **kwargs: Any | None
+) -> Order | None:
     """Update an existing order record by its ID.
 
-    This function accepts keyword arguments to update the attributes of the Order model.
+    This function can update an order using either an Order object or keyword arguments.
 
-    :param order_id(int): The ID of the order to update.
-    :param drone_id(int): The new drone ID to assign.
-    :param order_status(OrderStatus): The new status of the order.
-    :param completed_at(datetime): The timestamp when the order was completed.
+    :param order_id(int): The ID of the order to update. :param order_update(Order | None): An Order
+        object with updated values.
+    :param kwargs: Keyword arguments with attributes to update.
     :return: The updated order object if successful, None otherwise.
     :raises OrderUpdateError: If the order update fails.
     """
     db = SessionLocal()
     try:
-        order = db.query(Order).filter(Order.order_id == order_id).first()
-        if not order:
+        db_order = db.query(Order).filter(Order.order_id == order_id).first()
+
+        if not db_order:
             return None
 
-        for key, value in kwargs.items():
-            setattr(order, key, value)
+        update_data = {}
+        if order_update:
+            update_data = {
+                c.name: getattr(order_update, c.name)
+                for c in order_update.__table__.columns
+                if c.name != "order_id" and getattr(order_update, c.name) is not None
+            }
+
+        update_data.update(kwargs)
+
+        for key, value in update_data.items():
+            setattr(db_order, key, value)
 
         db.commit()
-        db.refresh(order)
+        db.refresh(db_order)
     except Exception as e:
         db.rollback()
         raise OrderUpdateError from e
     finally:
         db.close()
 
-    return order
+    return db_order
 
 
 def delete_order(order_id: int) -> bool:
