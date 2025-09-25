@@ -10,8 +10,11 @@ router = APIRouter()
 @router.post("/orders", status_code=status.HTTP_201_CREATED)
 def create_new_order(order_request: schemas.OrderCreateRequest) -> dict | None:
     """Create a new delivery order."""
+    # request.json()
     try:
         created_order = service.process_new_order(order_request)
+        if not created_order.order_id or created_order.order_id is None:
+            return None
     except Exception:
         pass
 
