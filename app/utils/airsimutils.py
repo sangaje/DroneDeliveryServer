@@ -6,13 +6,20 @@ from logging import info
 from queue import Queue
 from threading import Event, Thread
 
-from cosysairsim import MultirotorClient, MultirotorState
+from cosysairsim import ImageRequest, ImageType, MultirotorClient, MultirotorState
 from msgpackrpc.session import Future
 
 from app.models.order import Order, OrderStatus
 from app.services.controller.order_service import update_order
 
 _client: MultirotorClient | None = None
+
+# AirSim Image Request Configuration
+url = "http://localhost:8080/..."  # TODO: Replace with actual URL
+_CAM = "0"
+_img_reqs = [
+    ImageRequest(_CAM, ImageType.Scene, pixels_as_float=False, compress=True),
+]
 
 
 def disconnect_client() -> None:
@@ -44,6 +51,7 @@ def connect_client(ip: str, port: int) -> None:
 
     if not _client.ping():
         raise ConnectionError(f"{ip}:{port}")
+    _client.confirmConnection()
 
     info("cosysairsim client connected.")
 
@@ -75,12 +83,13 @@ class Drone:
     _vehicle_name: str
     _client: MultirotorClient
     _state: MultirotorState
-    _orders: Queue[Order]
+    _orders: Queue[Order | None]
     _current_order: Order | None
 
     ### MP Drone Worker ###
     _worker: Thread | None
     _stop_event: Event | None
+    _stop_post_event: Event | None
 
     def __init__(self, vehicle_name: str) -> None:
         """Initialize the Drone object.
@@ -98,7 +107,9 @@ class Drone:
         self._current_order = None
 
         ### Initialize Drone Worker ###
-        self._worker = Thread(target=self._delivery_loop, name=self._vehicle_name, daemon=True)
+        self._worker = Thread(
+            target=self._delivery_loop, name=self._vehicle_name, daemon=True
+        )
         self._stop_event = Event()
         self._worker.start()
 
@@ -140,6 +151,20 @@ class Drone:
     def disarm(self) -> None:
         """Disarm the drone."""
         self._client.armDisarm(False, vehicle_name=self._vehicle_name)
+
+    def start_post_info(self) -> None:
+        """Start posting drone information to a monitoring service."""
+        if self._stop_post_event:
+            self._stop_post_event.set()
+
+        self._stop_post_event = Event()
+        Thread(target=self._post_info_loop, args=(), daemon=True).start()
+
+    def stop_post_info(self) -> None:
+        """Stop posting drone information to a monitoring service."""
+        if self._stop_post_event:
+            self._stop_post_event.set()
+            self._stop_post_event = None
 
     ### Drone operations ###
     def dispatch_order(self, order: Order) -> None:
@@ -192,8 +217,15 @@ class Drone:
         return self._client.landAsync(vehicle_name=self._vehicle_name)
 
     def _go_to_position(
-        self, latitude: float, longitude: float, altitude: float, velocity: float
+        self,
+        latitude: float,
+        longitude: float,
+        altitude: float,
+        velocity: float,
     ) -> Future:
+        if latitude is None or longitude is None or altitude is None:
+            msg = "Latitude, Longitude, and Altitude must be provided."
+            raise ValueError(msg)
         """Command the drone to go to a specific position."""
         return self._client.moveToGPSAsync(
             latitude, longitude, altitude, velocity, vehicle_name=self._vehicle_name
@@ -202,42 +234,115 @@ class Drone:
     ### Drone Worker methods (ex. loop ...) ###
     def _delivery_loop(self) -> None:
         """Main loop for processing orders."""
+        pass
 
-        def pickup(order: Order) -> None:
-            self._takeoff().join()
-            self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt, 5).join()
-            self._land().join()
-            order.order_status = OrderStatus.RECEIVED
-            update_order(order.order_id, order)
-            pass
+# TODO Lint error fix it
+# def pickup(order: Order) -> None:
+#     self._takeoff().join()
+#     self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt, 5).join()
+#     self._land().join()
+#     order.order_status = OrderStatus.RECEIVED
+#     update_order(order.order_id, order)
+#     pass
 
-        def deliver(order: Order) -> None:
-            self._takeoff().join()
-            self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt, 5).join()
-            self._land().join()
-            order.order_status = OrderStatus.DELIVERED
-            update_order(order.order_id, order)
-            pass
+# def deliver(order: Order) -> None:
+#     self._takeoff().join()
+#     self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt, 5).join()
+#     self._land().join()
+#     order.order_status = OrderStatus.DELIVERED
+#     update_order(order.order_id, order)
+#     pass
 
-        while not self._stop_event.is_set():
-            order = self._orders.get()
-            if order is None:
-                self._orders.task_done()
-                break
+# if self._stop_event is None:
+#     msg = "Drone worker thread not properly initialized."
+#     raise RuntimeError(msg)
 
-            self._current_order = order
+# while not self._stop_event.is_set():
+#     order = self._orders.get()
+#     if order is None:
+#         self._orders.task_done()
+#         break
 
-            # Takeoff
-            self.enable()
-            self.arm()
-            # Go to pickup location
-            pickup(order)
+#     self._current_order = order
 
-            # Go to delivery location
-            deliver(order)
+#     # Takeoff
+#     self.enable()
+#     self.arm()
+#     # Go to pickup location
+#     pickup(order)
 
-            self.disarm()
-            self.disable()
+#     # Go to delivery location
+#     deliver(order)
 
-            self._current_order = None
-            self._orders.task_done()
+#     self.disarm()
+#     self.disable()
+
+#     self._current_order = None
+#     self._orders.task_done()
+
+    def _post_info_loop(self) -> None:
+        """Post drone information to a monitoring service."""
+        import time
+
+        import requests as req
+
+        while not self._stop_post_event.is_set():
+            responses = self._client.simGetImages(
+                _img_reqs, vehicle_name=self._vehicle_name
+            )
+
+            if len(responses) != len(_img_reqs):
+                info(f"Drone {_CAM} ({self._vehicle_name}): Error getting images")
+                continue
+
+            img = responses[0]
+            stat = self.update_state()
+            path = self.current_path
+
+            if path:
+                path_data: list[Order] = []
+                for order in path:
+                    path_data.append(
+                        {
+                            "order_id": order.order_id,
+                            "receive": {
+                                "lat": order.receive_lat,
+                                "lon": order.receive_lon,
+                                "alt": order.receive_alt,
+                            },
+                            "deliver": {
+                                "lat": order.deliver_lat,
+                                "lon": order.deliver_lon,
+                                "alt": order.deliver_alt,
+                            },
+                            "status": order.order_status,
+                        }
+                    )
+
+                current_order = path_data[0].order_id if path_data else None
+            else:
+                path_data = None
+                current_order = None
+
+            data = {
+                "drone_id": self.id,
+                "vehicle_name": self._vehicle_name,
+                "state": {
+                    "gps_location": {
+                        "lat": stat.gps_location.latitude,
+                        "lon": stat.gps_location.longitude,
+                        "alt": stat.gps_location.altitude,
+                    }
+                },
+                "current_order": current_order,
+                "path": path_data,
+            }
+
+            r = req.post(
+                url,
+                data=data,
+                files={"image": ("capture", img.image_data_uint8, "image/png")},
+            )
+            r.raise_for_status()
+
+            time.sleep(3)

@@ -1,14 +1,3 @@
-# .pre-commit-config.yaml - Pre-commit hooks configuration for Smart-Vault
-#
-# This file defines automated code quality checks that run before each commit.
-# It ensures consistent code formatting, import organization, documentation,
-# and type checking across the entire codebase.
-#
-# Usage: Run 'pre-commit install' to enable these hooks
-# Author: SSLAB
-# Project: Smart-Vault
-# License: MIT
-
 # =============================================================================
 # PRE-COMMIT HOOK REPOSITORIES - External tools for code quality enforcement
 # =============================================================================
