@@ -70,6 +70,21 @@
             </div>
         </form>
 
+        <h2>🚀 Launch Drone Delivery Simulatior</h2>
+        <p>Drone Delivery 시뮬레이션을 실행하기 위해 우선 Airsim을 실행 하십시오.</p>
+        <p>Drone Delivery 시뮬레이션을 실행하려면 먼저 AirSim을 실행하십시오.<br>
+            시뮬레이션을 시작하면 이미 실행 중인 AirSim에 시뮬레이터가 연결되어, API를 통해 드론을 제어하거나 정보를 얻을 수 있습니다.</p>
+
+        <form id="config-form" method="get" action="/launch">
+            <button type="submit" class="btn-link">🚀 launch</button><br>
+            <label for="config_name">Airsim Config 선택:</label>
+            <select name="config_name" id="config_name" required>
+                {% for name in airsim_config_names %}
+                <option value="{{ name }}" {% if name==airsim_config_name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
         <h2>🛠️ Configure AirSim</h2>
         <p>아래의 링크를 통해 AirSim을 설정할 수 있습니다. 처음 사용하시는 경우, 기본 설정을 먼저 해주시길 바랍니다.</p>
 
@@ -86,7 +101,7 @@
 
         <form method="get" action="/airsim/config/drone_group">
             <label for="config_name">설정 선택:</label>
-            <select name="config_name" id="config_name" >
+            <select name="config_name" id="config_name">
                 <option value="">Create New Config</option>
                 {% for name in drone_group_config_names %}
                 <option value="{{ name }}" {% if name==drone_group_config_name %}selected{% endif %}>{{ name }}</option>

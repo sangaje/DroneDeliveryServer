@@ -201,6 +201,11 @@ class AirSimSettings(_BaseAirSimConfig):
             for k, v in drone_group.build().items():
                 settings["Vehicles"][k] = v
 
+        if settings["CameraDefaults"] and settings["CameraDefaults"].get("CaptureSettings"):
+            settings["CameraDefaults"]["CaptureSettings"] = [
+                settings["CameraDefaults"]["CaptureSettings"]
+            ]
+
         return settings
 
 

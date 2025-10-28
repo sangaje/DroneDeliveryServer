@@ -142,7 +142,7 @@ def get_all_orders() -> list[Order]:
 
 
 def update_order(
-    order_id: int, order_update: Order | None = None, **kwargs: Any | None
+    order_id: int | None, order_update: Order | None = None, **kwargs: Any | None
 ) -> Order | None:
     """Update an existing order record by its ID.
 
@@ -154,6 +154,8 @@ def update_order(
     :return: The updated order object if successful, None otherwise.
     :raises OrderUpdateError: If the order update fails.
     """
+    if order_id is None:
+        return None
     db = SessionLocal()
     try:
         db_order = db.query(Order).filter(Order.order_id == order_id).first()
