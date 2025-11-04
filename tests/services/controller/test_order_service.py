@@ -76,7 +76,6 @@ def test_update_order(test_drone: drone_service.Drone) -> None:
     created_order = order_service.create_order(**order_data)
     assert created_order is not None
     assert created_order.order_id is not None
-
     update_data = {"order_status": OrderStatus.DELIVERED}
     updated_order = order_service.update_order(
         created_order.order_id, order_update=None, **update_data

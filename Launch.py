@@ -12,5 +12,5 @@ if __name__ == "__main__":
         port=8000,
         reload=True,
         factory=False,  # app_factory 방식이면 True
-        log_level="info",
+        log_level="debug",
     )

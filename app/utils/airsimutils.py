@@ -107,9 +107,7 @@ class Drone:
         self._current_order = None
 
         ### Initialize Drone Worker ###
-        self._worker = Thread(
-            target=self._delivery_loop, name=self._vehicle_name, daemon=True
-        )
+        self._worker = Thread(target=self._delivery_loop, name=self._vehicle_name, daemon=True)
         self._stop_event = Event()
         self._worker.start()
 
@@ -234,51 +232,47 @@ class Drone:
     ### Drone Worker methods (ex. loop ...) ###
     def _delivery_loop(self) -> None:
         """Main loop for processing orders."""
-        pass
 
-# TODO Lint error fix it
-# def pickup(order: Order) -> None:
-#     self._takeoff().join()
-#     self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt, 5).join()
-#     self._land().join()
-#     order.order_status = OrderStatus.RECEIVED
-#     update_order(order.order_id, order)
-#     pass
+        def pickup(order: Order) -> None:
+            self._takeoff().join()
+            self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt).join()
+            self._land().join()
+            order.order_status = OrderStatus.RECEIVED
+            update_order(order.order_id, order)
 
-# def deliver(order: Order) -> None:
-#     self._takeoff().join()
-#     self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt, 5).join()
-#     self._land().join()
-#     order.order_status = OrderStatus.DELIVERED
-#     update_order(order.order_id, order)
-#     pass
+        def deliver(order: Order) -> None:
+            self._takeoff().join()
+            self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt).join()
+            self._land().join()
+            order.order_status = OrderStatus.DELIVERED
+            update_order(order.order_id, order)
 
-# if self._stop_event is None:
-#     msg = "Drone worker thread not properly initialized."
-#     raise RuntimeError(msg)
+        if self._stop_event is None:
+            msg = "Drone worker thread not properly initialized."
+            raise RuntimeError(msg)
 
-# while not self._stop_event.is_set():
-#     order = self._orders.get()
-#     if order is None:
-#         self._orders.task_done()
-#         break
+        while not self._stop_event.is_set():
+            order = self._orders.get()
+            if order is None:
+                self._orders.task_done()
+                break
 
-#     self._current_order = order
+            self._current_order = order
 
-#     # Takeoff
-#     self.enable()
-#     self.arm()
-#     # Go to pickup location
-#     pickup(order)
+            # Takeoff
+            self.enable()
+            self.arm()
+            # Go to pickup location
+            pickup(order)
 
-#     # Go to delivery location
-#     deliver(order)
+            # Go to delivery location
+            deliver(order)
 
-#     self.disarm()
-#     self.disable()
+            self.disarm()
+            self.disable()
 
-#     self._current_order = None
-#     self._orders.task_done()
+            self._current_order = None
+            self._orders.task_done()
 
     def _post_info_loop(self) -> None:
         """Post drone information to a monitoring service."""
@@ -287,9 +281,7 @@ class Drone:
         import requests as req
 
         while not self._stop_post_event.is_set():
-            responses = self._client.simGetImages(
-                _img_reqs, vehicle_name=self._vehicle_name
-            )
+            responses = self._client.simGetImages(_img_reqs, vehicle_name=self._vehicle_name)
 
             if len(responses) != len(_img_reqs):
                 info(f"Drone {_CAM} ({self._vehicle_name}): Error getting images")

@@ -44,7 +44,7 @@ pip install -r requirements.txt
 또는 수동으로 설치:
 
 ```bash
-pip install "fastapi[standard]" "uvicorn[standard]" pydantic  rpc-msgpack cosysairsim jinja2
+pip install "fastapi[standard]" "uvicorn[standard]" pydantic  rpc-msgpack cosysairsim jinja2 geopy
 ```
 
 > `cosysairsim`은 Cosys-Lab에서 제공하는 AirSim 제어용 Python API입니다.

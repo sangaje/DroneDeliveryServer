@@ -38,6 +38,7 @@ class Order(Base):
     - order_id: The primary key for the order.
     - drone_id: The foreign key linking to the assigned drone.
     - order_status: The current status of the order, using the OrderStatus enum.
+    - item_count: The weight of the item to be delivered.
     - receive_lat: The latitude of the pickup location.
     - receive_lon: The longitude of the pickup location.
     - receive_alt: The altitude of the pickup location.
@@ -53,13 +54,15 @@ class Order(Base):
     drone_id = Column(Integer, ForeignKey("drones.drone_id"))
     order_status = Column(SQLEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
 
-    receive_lat = Column(Float, nullable=False)
-    receive_lon = Column(Float, nullable=False)
-    receive_alt = Column(Float, nullable=False)
+    item_count = Column(Float, nullable=False, default=0.0)
 
-    deliver_lat = Column(Float, nullable=False)
-    deliver_lon = Column(Float, nullable=False)
-    deliver_alt = Column(Float, nullable=False)
+    receive_lat = Column(Float, nullable=False, default=0.0)
+    receive_lon = Column(Float, nullable=False, default=0.0)
+    receive_alt = Column(Float, nullable=False, default=0.0)
+
+    deliver_lat = Column(Float, nullable=False, default=0.0)
+    deliver_lon = Column(Float, nullable=False, default=0.0)
+    deliver_alt = Column(Float, nullable=False, default=0.0)
 
     assigned_at = Column(DateTime, default=datetime.now(kst))
     completed_at = Column(DateTime, nullable=True)
@@ -71,6 +74,7 @@ class Order(Base):
 
         :param drone_id(Integer): The foreign key linking to the assigned drone.
         :param order_status(SQLEnum(OrderStatus)): The current status of the order.
+        :param item_count(Float): The weight of the item to be delivered.
         :param receive_lat(Float): The latitude of the pickup location.
         :param receive_lon(Float): The longitude of the pickup location.
         :param receive_alt(Float): The altitude of the pickup location.

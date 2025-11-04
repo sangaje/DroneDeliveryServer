@@ -39,17 +39,17 @@ def process_new_order(order_data: schemas.OrderCreateRequest) -> Order:
     closest_drone = _find_closest_available_drone(
         order_data.store_latitude, order_data.store_longitude
     )
-
-    if not closest_drone:
+    if not closest_drone or closest_drone.status != DroneStatus.IDLE:
         raise NoAvailableDronesError
 
-    if closest_drone.drone_id is None:
-        raise NoAvailableDronesError
+    # 2. Aggregate item_count from request items
+    total_item_count = sum(item.quantity for item in order_data.items)
 
-    # 2. Prepare order data for database creation
+    # 3. Prepare order data for database creation
     db_order_data = {
         "drone_id": closest_drone.drone_id,
         "order_status": OrderStatus.PENDING,
+        "item_count": total_item_count,
         "receive_lat": order_data.store_latitude,
         "receive_lon": order_data.store_longitude,
         "deliver_lat": order_data.user_latitude,
@@ -59,10 +59,10 @@ def process_new_order(order_data: schemas.OrderCreateRequest) -> Order:
         "deliver_alt": 50.0,
     }
 
-    # 3. Create the order
+    # 4. Create the order
     new_order = order_service.create_order(**db_order_data)
 
-    # 4. Update the drone's status to indicate it's on a mission
+    # 5 . Update the drone's status to indicate it's on a mission
     drone_service.update_drone(drone_id=closest_drone.drone_id, status=DroneStatus.DELIVERING)
 
     return new_order

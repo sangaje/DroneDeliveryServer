@@ -23,7 +23,6 @@ class OrderCreateRequest(BaseModel):
 
     store_latitude: float = Field(..., alias="storeLatitude", ge=-90.0, le=90.0)
     store_longitude: float = Field(..., alias="storeLongitude", ge=-180.0, le=180.0)
-
     user_latitude: float = Field(..., alias="userLatitude", ge=-90.0, le=90.0)
     user_longitude: float = Field(..., alias="userLongitude", ge=-180.0, le=180.0)
 
