@@ -72,6 +72,7 @@ def create_drones_list() -> list[Drone]:
             if isinstance(state, MultirotorState):
                 retval.append(Drone(vehicle_name=drone))
         # TODO What exceptions can be raised here? Fuck
+
         except Exception:
             pass
     return retval

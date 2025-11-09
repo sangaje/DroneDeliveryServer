@@ -75,7 +75,7 @@
         <p>Drone Delivery 시뮬레이션을 실행하려면 먼저 AirSim을 실행하십시오.<br>
             시뮬레이션을 시작하면 이미 실행 중인 AirSim에 시뮬레이터가 연결되어, API를 통해 드론을 제어하거나 정보를 얻을 수 있습니다.</p>
 
-        <form id="config-form" method="get" action="/launch">
+        <form id="config-form" method="post" action="/api/v_a0_0_1/airsim/launch">
             <button type="submit" class="btn-link">🚀 launch</button><br>
             <label for="config_name">Airsim Config 선택:</label>
             <select name="config_name" id="config_name" required>

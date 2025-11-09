@@ -4,7 +4,7 @@ from datetime import timedelta, timezone
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import Column, Enum as SQLEnum, Float, Integer
+from sqlalchemy import Column, Enum as SQLEnum, Float, Integer, String
 
 from app.models.base import Base
 
@@ -46,6 +46,7 @@ class Drone(Base):
 
     __tablename__ = "drones"
     drone_id = Column(Integer, primary_key=True, autoincrement=True)
+    airsim_id = Column(String(128), nullable=False, unique=True)
     status = Column(SQLEnum(DroneStatus), nullable=False, default=DroneStatus.IDLE)
 
     max_battery = Column(Float, nullable=False)

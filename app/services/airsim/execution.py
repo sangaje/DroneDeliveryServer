@@ -3,7 +3,8 @@
 from cosysairsim import MultirotorState
 
 from app.models.drone import DroneStatus
-from app.services.controller.database import drop_all_tables, init_db
+from app.models.order import Order
+from app.services.controller.database import init_db
 from app.services.controller.drone_service import create_drone
 from app.services.controller.order_service import create_order, get_order
 from app.utils.airsimutils import (
@@ -12,7 +13,6 @@ from app.utils.airsimutils import (
     create_drones_list,
     disconnect_client,
 )
-from models.order import Order
 
 from .config import AirSimConfig
 
@@ -51,12 +51,14 @@ def init_sesstion(airsim_config: AirSimConfig) -> None:
 
     # Set up drone database
     init_db()
-    drop_all_tables()
+    # drop_all_tables()
+    _drones = {}
 
     # Create drones in the database
     for drone in drones:
         create_drone(
-            drone_id=drone.id,
+            drone_id=None,
+            airsim_id=str(getattr(drone, "id", "")),
             status=DroneStatus.IDLE,
             max_battery=10000,
             cur_battery=10000,

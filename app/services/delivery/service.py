@@ -39,7 +39,7 @@ def process_new_order(order_data: schemas.OrderCreateRequest) -> Order:
     closest_drone = _find_closest_available_drone(
         order_data.store_latitude, order_data.store_longitude
     )
-    if not closest_drone or closest_drone.status != DroneStatus.IDLE:
+    if not closest_drone:
         raise NoAvailableDronesError
 
     # 2. Aggregate item_count from request items
