@@ -78,7 +78,7 @@ class OrderDeletionError(OrderServiceError):
         super().__init__(msg)
 
 
-def create_order(**kwargs: Any) -> Order:
+def create_order(order: Order | None = None, **kwargs: Any) -> Order:
     """Create a new order record in the database.
 
     This function accepts keyword arguments to set the attributes of the Order model.
@@ -95,7 +95,8 @@ def create_order(**kwargs: Any) -> Order:
     :raises OrderCreationError: If the order creation fails.
     """
     db = SessionLocal()
-    order = Order(**kwargs)
+    if not order:
+        order = Order(**kwargs)
     try:
         db.add(order)
         db.commit()

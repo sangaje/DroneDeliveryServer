@@ -9,7 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api import router as api_router
 from app.api.v_a0_0_1 import orders
-from app.api.v_a0_0_1.index import api_router
+from app.api.v_a0_0_1.index import api_router as airsim_router
 from app.services.controller.database import init_db
 from app.web.routers import router as web_router
 
@@ -39,7 +39,7 @@ app.mount("/static", StaticFiles(directory="app/web/static"), name="static")
 app.include_router(web_router)
 app.include_router(api_router)
 app.include_router(orders.router)
-app.include_router(api_router, prefix="/api/v_a0_0_1")
+app.include_router(airsim_router, prefix="/api/v_a0_0_1")
 
 init_db()
 

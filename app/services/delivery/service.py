@@ -63,6 +63,6 @@ def process_new_order(order_data: schemas.OrderCreateRequest) -> Order:
     new_order = order_service.create_order(**db_order_data)
 
     # 5 . Update the drone's status to indicate it's on a mission
-    drone_service.update_drone(drone_id=closest_drone.drone_id, status=DroneStatus.DELIVERING)
+    # drone_service.update_drone(drone_id=closest_drone.drone_id, status=DroneStatus.DELIVERING)
 
     return new_order

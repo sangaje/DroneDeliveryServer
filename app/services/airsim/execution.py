@@ -1,19 +1,20 @@
 """TODO: Launch AirSim simulation with specified configurations."""
 
 from cosysairsim import MultirotorState
-
-from app.models.drone import DroneStatus
+from typing import Optional
 from app.models.order import Order
+from app.models.drone import Drone as dbDrone
+from app.models.drone import DroneStatus
 from app.services.controller.database import init_db
 from app.services.controller.drone_service import create_drone
-from app.services.controller.order_service import create_order, get_order
+from app.services.controller.order_service import create_order, get_order, update_order
 from app.utils.airsimutils import (
     Drone,
     connect_client,
     create_drones_list,
     disconnect_client,
 )
-
+import asyncio
 from .config import AirSimConfig
 
 _airsim_config: AirSimConfig | None = None
@@ -27,7 +28,7 @@ def is_running() -> bool:
     return _is_running
 
 
-def init_sesstion(airsim_config: AirSimConfig) -> None:
+def init_session(airsim_config: AirSimConfig) -> None:
     """Initialize the global session with AirSim configuration.
 
     :param airsim_config: Configuration for AirSim.
@@ -51,14 +52,14 @@ def init_sesstion(airsim_config: AirSimConfig) -> None:
 
     # Set up drone database
     init_db()
-    # drop_all_tables()
-    _drones = {}
+    _drones = {} 
 
     # Create drones in the database
     for drone in drones:
-        create_drone(
+        drone.update_state()
+        db_row = create_drone(
             drone_id=None,
-            airsim_id=str(getattr(drone, "id", "")),
+            airsim_id=drone.vehicle_name,
             status=DroneStatus.IDLE,
             max_battery=10000,
             cur_battery=10000,
@@ -68,8 +69,9 @@ def init_sesstion(airsim_config: AirSimConfig) -> None:
             cur_lon=drone.state.gps_location.longitude,
             cur_alt=drone.state.gps_location.altitude,
         )
+        drone.set_db_drone_id(db_row.drone_id)
+        drone.update_state()
         _drones[drone.id] = drone
-
 
 def enqueue_order(order: Order) -> None:
     """Enqueue an order to a drone.
@@ -80,10 +82,14 @@ def enqueue_order(order: Order) -> None:
     if not _drones:
         msg = "No drones available in the AirSim simulation."
         raise ConnectionError(msg)
+
+
     # Simple round-robin assignment for demonstration purposes
-    drone: Drone = _drones[order.order_id % len(_drones)]
+    drones = [drone for id, drone in _drones.items() if drone.dstate == DroneStatus.IDLE]
+    drone: Drone = drones[(order.order_id - 1) % len(drones)] # 뽑기 로직
     drone.dispatch_order(order)
     create_order(order)
+    
 
 
 def get_order_status(id: int) -> Order | None:

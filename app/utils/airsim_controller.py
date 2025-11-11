@@ -1,6 +1,6 @@
 """This module provides an interface to control a drone in AirSim using Python."""
 
-import airsim
+import cosysairsim as airsim
 import pymap3d as pm
 
 
