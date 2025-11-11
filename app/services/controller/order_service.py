@@ -210,5 +210,4 @@ def delete_order(order_id: int) -> bool:
         raise OrderDeletionError from e
     finally:
         db.close()
-
     return True

@@ -1,20 +1,22 @@
 """TODO: Launch AirSim simulation with specified configurations."""
 
+import time
+
 from cosysairsim import MultirotorState
-from typing import Optional
-from app.models.order import Order
-from app.models.drone import Drone as dbDrone
+
 from app.models.drone import DroneStatus
+from app.models.order import Order
 from app.services.controller.database import init_db
 from app.services.controller.drone_service import create_drone
-from app.services.controller.order_service import create_order, get_order, update_order
+from app.services.controller.order_service import create_order, get_order
 from app.utils.airsimutils import (
     Drone,
     connect_client,
     create_drones_list,
     disconnect_client,
+    sim_reset,
 )
-import asyncio
+
 from .config import AirSimConfig
 
 _airsim_config: AirSimConfig | None = None
@@ -41,6 +43,15 @@ def init_session(airsim_config: AirSimConfig) -> None:
 
     _airsim_config = airsim_config
 
+    from app.services.controller.drone_service import delete_drone, get_all_drones
+    from app.services.controller.order_service import delete_order, get_all_orders
+
+    for order in get_all_orders():
+        delete_order(order.order_id)
+
+    for drone in get_all_drones():
+        delete_drone(drone.drone_id)
+
     # Set up AirSim client
     target_ip, target_port = (
         _airsim_config["LocalHostIp"],
@@ -52,7 +63,7 @@ def init_session(airsim_config: AirSimConfig) -> None:
 
     # Set up drone database
     init_db()
-    _drones = {} 
+    _drones = {}
 
     # Create drones in the database
     for drone in drones:
@@ -73,6 +84,7 @@ def init_session(airsim_config: AirSimConfig) -> None:
         drone.update_state()
         _drones[drone.id] = drone
 
+
 def enqueue_order(order: Order) -> None:
     """Enqueue an order to a drone.
 
@@ -83,13 +95,15 @@ def enqueue_order(order: Order) -> None:
         msg = "No drones available in the AirSim simulation."
         raise ConnectionError(msg)
 
-
     # Simple round-robin assignment for demonstration purposes
+    sim_reset()
+    time.sleep(3)
+    for id, drone in _drones.items():
+        drone._dstate = DroneStatus.IDLE
     drones = [drone for id, drone in _drones.items() if drone.dstate == DroneStatus.IDLE]
-    drone: Drone = drones[(order.order_id - 1) % len(drones)] # 뽑기 로직
+    drone: Drone = drones[(order.order_id - 1) % len(drones)]  # 뽑기 로직
     drone.dispatch_order(order)
     create_order(order)
-    
 
 
 def get_order_status(id: int) -> Order | None:
@@ -120,3 +134,11 @@ def end() -> None:
     global _is_running
     _is_running = False
     disconnect_client()
+
+
+def get_drone_progress(order_id: int):
+    for drone in _drones.values():
+        if drone.current_order and drone.current_order.order_id == order_id:
+            return drone.image_response()
+
+    return None

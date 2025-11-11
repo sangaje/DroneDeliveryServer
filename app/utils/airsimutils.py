@@ -2,19 +2,30 @@
 
 from __future__ import annotations
 
+from collections.abc import Coroutine
 from logging import info
 from queue import Queue
 from threading import Event, Thread
-import asyncio, time, math
-import pymap3d as pm
-from typing import Coroutine
-from cosysairsim import ImageRequest, ImageType, MultirotorClient, MultirotorState, DrivetrainType, YawMode, Vector3r
+import time
+
+from cosysairsim import (
+    DrivetrainType,
+    ImageRequest,
+    ImageType,
+    MultirotorClient,
+    MultirotorState,
+    YawMode,
+)
 from msgpackrpc.session import Future
+import pymap3d as pm
+from pyproj import Geod
 
 from app.models.drone import DroneStatus
 from app.models.order import Order, OrderStatus
 from app.services.controller.drone_service import update_drone
 from app.services.controller.order_service import update_order
+
+_WGS84 = Geod(ellps="WGS84")
 # _loop = asyncio.new_event_loop()
 # _loop.run_forever()
 _client: MultirotorClient | None = None
@@ -23,7 +34,7 @@ _client: MultirotorClient | None = None
 ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT = 37.61059, 127.04397, 30
 
 # AirSim Image Request Configuration
-url = "http://localhost:8080/realtime/drone" 
+url = "http://localhost:8080/realtime/drone"
 _CAM = "0"
 _img_reqs = [
     ImageRequest(_CAM, ImageType.Scene, pixels_as_float=False, compress=True),
@@ -84,8 +95,26 @@ def create_drones_list() -> list[Drone]:
 
         except:
             raise
-            
+
     return retval
+
+
+def sim_reset():
+    from os import scandir, unlink
+    from shutil import rmtree
+
+    _client.reset()
+    if _client.isRecording:
+        _client.stopRecording()
+
+    with scandir(r"C:\Users\ManticoreXL\Documents\AirSim") as it:
+        for entry in it:
+            if entry.is_file(follow_symlinks=False) or entry.is_symlink():
+                unlink(entry.path)  # 파일/심볼릭 링크 삭제
+            elif entry.is_dir(follow_symlinks=False):
+                rmtree(entry.path)  # 비어있지 않은 디렉토리도 재귀적으로 삭제
+
+    _client.startRecording()
 
 
 class Drone:
@@ -100,9 +129,13 @@ class Drone:
     _current_order: Order | None
 
     ### MP Drone Worker ###
-    _worker: Coroutine| None
+    _worker: Coroutine | None
     _stop_event: Event | None
     _stop_post_event: Event | None
+    _is_moving: bool
+    _target: tuple[float, float, float]
+
+    _moving_time: float
 
     def __init__(self, vehicle_name: str) -> None:
         """Initialize the Drone object.
@@ -117,16 +150,12 @@ class Drone:
         self._client = _client
         self._orders = Queue()
         self._current_order = None
-        _client.enableApiControl(True, vehicle_name=self._vehicle_name)        
-
-        ### Initialize Drone Worker ###
-        # self._worker = _loop.create_task(self._delivery_loop())
-        # await self._delivery_loop()
-        # self._worker\ asyncio.create_task(self._delivery_loop())
-        # self._stop_event = Event()
+        _client.enableApiControl(True, vehicle_name=self._vehicle_name)
         self._dstate = DroneStatus.IDLE
         self._db_drone_id = None
-
+        self._is_moving = False
+        self._moving_time = 0
+        self._original = (0, 0, 0)
 
     @property
     def vehicle_name(self) -> str:
@@ -137,7 +166,7 @@ class Drone:
     def state(self) -> MultirotorState:
         """Get the current state of the drone."""
         return self._state
-    
+
     @property
     def dstate(self) -> DroneStatus:
         """Get the current DroneStatus of the drone."""
@@ -147,7 +176,7 @@ class Drone:
     def id(self) -> int | None:
         """Get a unique identifier for the drone instance."""
         return self._db_drone_id
-    
+
     def set_db_drone_id(self, db_drone_id: int) -> None:
         """Set the database drone ID for the drone instance."""
         self._db_drone_id = db_drone_id
@@ -214,16 +243,18 @@ class Drone:
         # self.update_state()
 
         def pickup(order: Order) -> None:
-            self._takeoff() 
+            self._takeoff()
             self._dstate = DroneStatus.DELIVERING
-            self.update_state()           
-            self._go_to_position(self.state.gps_location.latitude, self.state.gps_location.longitude, 200)
             self.update_state()
-            self._go_to_position(order.receive_lat, order.receive_lon, 300)
-            # self._go_to_position(37.623662, 127.061441, 200) # 이마트 트레이더스 월계점
+            self._go_to_position(
+                self.state.gps_location.latitude, self.state.gps_location.longitude, 200
+            )
             self.update_state()
-            self._go_to_position(order.receive_lat, order.receive_lon, 35)
-            # self._go_to_position(37.623662, 127.061441, 35)
+            # self._go_to_position(order.receive_lat, order.receive_lon, 300)
+            self._go_to_position(37.623662, 127.061441, 400)  # 이마트 트레이더스 월계점
+            self.update_state()
+            # self._go_to_position(order.receive_lat, order.receive_lon, 35)
+            self._go_to_position(37.623662, 127.061441, 35)
             self._land()
             self.update_state()
             order.order_status = OrderStatus.RECEIVED
@@ -232,46 +263,48 @@ class Drone:
         def deliver(order: Order) -> None:
             self._takeoff()
             self.update_state()
-            self._go_to_position(self.state.gps_location.latitude, self.state.gps_location.longitude, 200)
+            self._go_to_position(
+                self.state.gps_location.latitude, self.state.gps_location.longitude, 200
+            )
             self.update_state()
-            self._go_to_position(order.deliver_lat, order.deliver_lon, 300)
-            # self._go_to_position(37.620264, 127.056199, 200) # 광운고등학교 운동장
+            # self._go_to_position(order.deliver_lat, order.deliver_lon, 300)
+            self._go_to_position(37.620264, 127.056199, 400)  # 광운고등학교 운동장
             self.update_state()
-            self._go_to_position(order.deliver_lat, order.deliver_lon, 35)
-            # self._go_to_position(37.620264, 127.056199, 35) 
+            # self._go_to_position(order.deliver_lat, order.deliver_lon, 35)
+            self._go_to_position(37.620264, 127.056199, 35)
             self._land()
             self.update_state()
             order.order_status = OrderStatus.DELIVERED
             update_order(order.order_id, order)
 
-        def returntostation(order: Order) -> None:
+        def returntostation() -> None:
             self._takeoff()
             self.update_state()
-            self._go_to_position(self.state.gps_location.latitude, self.state.gps_location.longitude, 200)
+            self._go_to_position(
+                self.state.gps_location.latitude, self.state.gps_location.longitude, 200
+            )
             self.update_state()
-            self._go_to_position(order.deliver_lat, order.deliver_lon, 300)
-            # self._go_to_position(37.620264, 127.056199, 200) # 광운고등학교 운동장
+            self._go_to_position(ORIGIN_LAT, ORIGIN_LON, 400)
             self.update_state()
-            self._go_to_position(order.deliver_lat, order.deliver_lon, 35)
-            # self._go_to_position(37.620264, 127.056199, 35) 
+            self._go_to_position(ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT, 35)
             self._land()
             self.update_state()
-            order.order_status = OrderStatus.DELIVERED
-            update_order(order.order_id, order)
-
 
         self._current_order = order
+        self._is_moving = False
+        self._client.enableApiControl(True, self.vehicle_name)
         self.arm()
         # Takeoff
         # Go to pickup location
         pickup(order)
-    
+
         # Go to delivery location
         deliver(order)
 
         self._current_order = None
         self._dstate = DroneStatus.IDLE
         self.update_state()
+        returntostation()
         self.disarm()
 
     @property
@@ -322,19 +355,35 @@ class Drone:
         """Command the drone to go to a specific position."""
         if latitude is None or longitude is None or altitude is None:
             raise ValueError("Latitude, Longitude, and Altitude must be provided.")
-        
+
         e, n, u = pm.geodetic2enu(latitude, longitude, altitude, ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT)
 
-        return self._client.moveToPositionAsync(n, e, -u, velocity,
-                                                drivetrain=DrivetrainType.ForwardOnly,
-                                                yaw_mode=YawMode(is_rate=False, yaw_or_rate=0),
-                                                timeout_sec=360,
-                                                vehicle_name=self._vehicle_name).join()
-    
+        self._target = (longitude, latitude, altitude)
+        self._moving_time = time.time()
+        self._is_moving = True
+
+        self._client.moveToGPSAsync(
+            latitude,
+            longitude,
+            altitude,
+            velocity,
+            drivetrain=DrivetrainType.ForwardOnly,
+            yaw_mode=YawMode(is_rate=False, yaw_or_rate=0),
+            # timeout_sec=360,
+            vehicle_name=self._vehicle_name,
+        ).join()
+
+        self._is_moving = False
+
+        # return self._client.moveToPositionAsync(n, e, -u, velocity,
+        #                                         drivetrain=DrivetrainType.ForwardOnly,
+        #                                         yaw_mode=YawMode(is_rate=False, yaw_or_rate=0),
+        #                                         timeout_sec=360,
+        #                                         vehicle_name=self._vehicle_name).join()
+
         # return self._client.moveToGPSAsync(
         #     latitude, longitude, altitude, velocity, vehicle_name=self._vehicle_name
         # ).join()
-
 
     # ### Drone Worker methods (ex. loop ...) ###
     # async def _delivery_loop(self) -> None:
@@ -387,59 +436,55 @@ class Drone:
 
     def image_response(self) -> None:
         """Post drone information to a monitoring service."""
+        from os import scandir
         import time
-        import requests as req
 
-        while not self._stop_post_event.is_set():
-            responses = self._client.simGetImages(_img_reqs, vehicle_name=self._vehicle_name)
+        geo_points = self.state.gps_location
 
-            if len(responses) != len(_img_reqs):
-                info(f"Drone {_CAM} ({self._vehicle_name}): Error getting images")
-                continue
+        if self._is_moving:
+            dt = time.time() - self._moving_time
+            d_distance = 50 * dt
+            az12, az21, dist = _WGS84.inv(
+                self._target[0], self._target[1], geo_points.longitude, geo_points.latitude
+            )
+            lon, lat, back_az = _WGS84.fwd(
+                geo_points.longitude, geo_points.latitude, az21, d_distance
+            )
+            alt = geo_points.altitude
+        else:
+            lat, lon, alt = (
+                geo_points.latitude,
+                geo_points.longitude,
+                geo_points.altitude,
+            )
 
-            img = responses[0]
-            stat = self.update_state()
-            # path = self.current_path
+        dir_path = None
 
-            # if path:
-                # path_data: list[Order] = []
-                # for order in path:
-                    # path_data.append(
-                    #     {
-                    #         "order_id": order.order_id,
-                    #         "receive": {
-                    #             "lat": order.receive_lat,
-                    #             "lon": order.receive_lon,
-                    #             "alt": order.receive_alt,
-                    #         },
-                    #         "deliver": {
-                    #             "lat": order.deliver_lat,
-                    #             "lon": order.deliver_lon,
-                    #             "alt": order.deliver_alt,
-                    #         },
-                    #         "status": order.order_status,
-                    #     }
-                    # )
+        with scandir(r"C:\Users\ManticoreXL\Documents\AirSim") as it:
+            for entry in it:
+                if entry.is_dir(follow_symlinks=False):
+                    dir_path = entry.path
 
-                # current_order = path_data[0].order_id if path_data else None
-            # else:
-                # path_data = None
-                # current_order = None
+        file_bytes = b"ERROR"
+        if dir_path:
+            with scandir(dir_path + r"\images") as it:
+                files = [e for e in it if e.is_file()]
+                last = max(files, key=lambda e: e.name)
+                print(f"image path: {last.path}")
+                with open(last.path, "rb") as f:
+                    file_bytes = f.read()
 
-            data = {
-                "drone_id": self.id,
-                "vehicle_name": self._vehicle_name,
-                "state": {
-                    "gps_location": {
-                        "lat": stat.gps_location.latitude,
-                        "lon": stat.gps_location.longitude,
-                        "alt": stat.gps_location.altitude,
-                    }
-                },
-                "current_order": self.current_order.order_id,
-                # "path": path_data,
-            }
-
-            # r = req.post(
-            #     url,
-            return data, {"image": ("capture", img.image_data_uint8, "image/png")}
+        data = {
+            "drone_id": self.id,
+            "vehicle_name": self.vehicle_name,
+            "state": {
+                "gps_location": {
+                    "lat": lat,
+                    "lon": lon,
+                    "alt": alt,
+                }
+            },
+            "current_order": self.current_order.order_id,
+        }
+        # TODO
+        return data, {"image": ("capture", file_bytes, "image/png")}
