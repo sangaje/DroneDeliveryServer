@@ -20,7 +20,7 @@ class OrderCreateRequest(BaseModel):
     items: list[FoodItem] = Field(
         ..., min_length=1, description="A list of food items in the order."
     )
-
+    order_id: int = Field(..., alias="orderId")
     store_latitude: float = Field(..., alias="storeLatitude", ge=-90.0, le=90.0)
     store_longitude: float = Field(..., alias="storeLongitude", ge=-180.0, le=180.0)
     user_latitude: float = Field(..., alias="userLatitude", ge=-90.0, le=90.0)
@@ -37,6 +37,7 @@ class OrderCreateRequest(BaseModel):
                     {"foodName": "불싸이순살", "quantity": 1},
                     {"foodName": "싸이순살", "quantity": 1},
                 ],
+                "orderId": 1,
                 "storeLatitude": 37.691887,
                 "userLatitude": 37.566370,
                 "storeLongitude": 127.213920,

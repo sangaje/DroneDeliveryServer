@@ -23,12 +23,13 @@ class OrderStatus(str, Enum):
     - CANCELED: The order has been canceled.
     """
 
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    RECEIVED = "received"
-    DELIVERED = "delivered"
-    FAILED = "failed"
-    CANCELED = "canceled"
+    PENDING = "PENDING"
+    ACCEPTED = "SHIPPED"
+    # RECEIVED = "SHIPPED"
+    DELIVERED = "DELIVERED"
+    FAILED = "CANCELED"
+    CANCELED = "CANCELED"
+    RETURNED = "RETURNED"
 
 
 class Order(Base):

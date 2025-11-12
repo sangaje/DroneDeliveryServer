@@ -29,7 +29,7 @@ _WGS84 = Geod(ellps="WGS84")
 # _loop = asyncio.new_event_loop()
 # _loop.run_forever()
 _client: MultirotorClient | None = None
-
+finished = {}
 # Original Geopoint
 ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT = 37.61059, 127.04397, 30
 
@@ -76,6 +76,10 @@ def connect_client(ip: str, port: int) -> None:
     info("cosysairsim client connected.")
 
 
+def is_conneted() -> bool:
+    return _client is not None
+
+
 def create_drones_list() -> list[Drone]:
     """List all drones in the AirSim simulation."""
     global _client
@@ -91,8 +95,6 @@ def create_drones_list() -> list[Drone]:
             state = _client.getMultirotorState(vehicle_name=drone)
             if isinstance(state, MultirotorState):
                 retval.append(Drone(vehicle_name=drone))
-        # TODO What exceptions can be raised here? Fuck
-
         except:
             raise
 
@@ -244,56 +246,61 @@ class Drone:
 
         def pickup(order: Order) -> None:
             self._takeoff()
-            self._dstate = DroneStatus.DELIVERING
+            # self._dstate = DroneStatus.DELIVERING
             self.update_state()
             self._go_to_position(
-                self.state.gps_location.latitude, self.state.gps_location.longitude, 200
+                self.state.gps_location.latitude, self.state.gps_location.longitude, 200, move=False
             )
             self.update_state()
-            # self._go_to_position(order.receive_lat, order.receive_lon, 300)
-            self._go_to_position(37.623662, 127.061441, 400)  # 이마트 트레이더스 월계점
+            self._go_to_position(order.receive_lat, order.receive_lon, 500)
+            # self._go_to_position(37.623662, 127.061441, 300)  # 이마트 트레이더스 월계점
             self.update_state()
-            # self._go_to_position(order.receive_lat, order.receive_lon, 35)
-            self._go_to_position(37.623662, 127.061441, 35)
+            self._go_to_position(order.receive_lat, order.receive_lon, 50, move=False)
+            # self._go_to_position(37.623662, 127.061441, 35)
+            update_order(order.order_id, self.current_order)
             self._land()
             self.update_state()
-            order.order_status = OrderStatus.RECEIVED
-            update_order(order.order_id, order)
 
         def deliver(order: Order) -> None:
             self._takeoff()
             self.update_state()
             self._go_to_position(
-                self.state.gps_location.latitude, self.state.gps_location.longitude, 200
+                self.state.gps_location.latitude, self.state.gps_location.longitude, 200, move=False
             )
             self.update_state()
-            # self._go_to_position(order.deliver_lat, order.deliver_lon, 300)
-            self._go_to_position(37.620264, 127.056199, 400)  # 광운고등학교 운동장
+            self._go_to_position(order.deliver_lat, order.deliver_lon, 500)
+            # self._go_to_position(37.620264, 127.056199, 300)  # 광운고등학교 운동장
             self.update_state()
-            # self._go_to_position(order.deliver_lat, order.deliver_lon, 35)
-            self._go_to_position(37.620264, 127.056199, 35)
+            self._go_to_position(order.deliver_lat, order.deliver_lon, 50, move=False)
+            # self._go_to_position(37.620264, 127.056199, 35)
             self._land()
+            self.current_order.order_status = OrderStatus.DELIVERED
+            update_order(order.order_id, self.current_order)
             self.update_state()
-            order.order_status = OrderStatus.DELIVERED
-            update_order(order.order_id, order)
 
         def returntostation() -> None:
             self._takeoff()
             self.update_state()
             self._go_to_position(
-                self.state.gps_location.latitude, self.state.gps_location.longitude, 200
+                self.state.gps_location.latitude, self.state.gps_location.longitude, 200, move=False
             )
             self.update_state()
-            self._go_to_position(ORIGIN_LAT, ORIGIN_LON, 400)
+            self._go_to_position(ORIGIN_LAT, ORIGIN_LON, 500)
             self.update_state()
-            self._go_to_position(ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT, 35)
+            self._go_to_position(ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT, 35, move=False)
             self._land()
+
             self.update_state()
 
         self._current_order = order
         self._is_moving = False
         self._client.enableApiControl(True, self.vehicle_name)
         self.arm()
+
+        self.current_order.order_status = OrderStatus.ACCEPTED
+        update_order(order.order_id, order)
+        self.update_state()
+
         # Takeoff
         # Go to pickup location
         pickup(order)
@@ -301,7 +308,6 @@ class Drone:
         # Go to delivery location
         deliver(order)
 
-        self._current_order = None
         self._dstate = DroneStatus.IDLE
         self.update_state()
         returntostation()
@@ -351,6 +357,7 @@ class Drone:
         longitude: float,
         altitude: float,
         velocity: float = 50.0,
+        move: bool = True,
     ) -> None:
         """Command the drone to go to a specific position."""
         if latitude is None or longitude is None or altitude is None:
@@ -358,9 +365,10 @@ class Drone:
 
         e, n, u = pm.geodetic2enu(latitude, longitude, altitude, ORIGIN_LAT, ORIGIN_LON, ORIGIN_ALT)
 
-        self._target = (longitude, latitude, altitude)
-        self._moving_time = time.time()
-        self._is_moving = True
+        if move:
+            self._target = (longitude, latitude, altitude)
+            self._moving_time = time.time()
+            self._is_moving = True
 
         self._client.moveToGPSAsync(
             latitude,
@@ -374,65 +382,6 @@ class Drone:
         ).join()
 
         self._is_moving = False
-
-        # return self._client.moveToPositionAsync(n, e, -u, velocity,
-        #                                         drivetrain=DrivetrainType.ForwardOnly,
-        #                                         yaw_mode=YawMode(is_rate=False, yaw_or_rate=0),
-        #                                         timeout_sec=360,
-        #                                         vehicle_name=self._vehicle_name).join()
-
-        # return self._client.moveToGPSAsync(
-        #     latitude, longitude, altitude, velocity, vehicle_name=self._vehicle_name
-        # ).join()
-
-    # ### Drone Worker methods (ex. loop ...) ###
-    # async def _delivery_loop(self) -> None:
-    #     """Main loop for processing orders."""
-    #     # self._client = MultirotorClient()
-    #     self._client.enableApiControl(True, vehicle_name=self._vehicle_name)
-    #     self.arm()
-
-    #     async def pickup(order: Order) -> None:
-    #         await self._takeoff()
-    #         await self._go_to_position(self.state.gps_location.latitude, self.state.gps_location.longitude, 50)
-    #         await self._go_to_position(order.receive_lat, order.receive_lon, 50)
-    #         await self._go_to_position(order.receive_lat, order.receive_lon, order.receive_alt)
-    #         await self._land()
-    #         order.order_status = OrderStatus.RECEIVED
-    #         update_order(order.order_id, order)
-
-    #     async def deliver(order: Order) -> None:
-    #         await self._takeoff()
-    #         await self._go_to_position(self.state.gps_location.latitude, self.state.gps_location.longitude, 50)
-    #         await self._go_to_position(order.deliver_lat, order.deliver_lon, 50)
-    #         await self._go_to_position(order.deliver_lat, order.deliver_lon, order.deliver_alt)
-    #         await self._land()
-    #         order.order_status = OrderStatus.DELIVERED
-    #         update_order(order.order_id, order)
-
-    #     if self._stop_event is None:
-    #         msg = "Drone worker thread not properly initialized."
-    #         raise RuntimeError(msg)
-
-    #     while not self._stop_event.is_set():
-    #         order: Order | None = None
-    #         while order is not None:
-    #             order = self._orders.get()
-    #             await asyncio.sleep(0.2)
-
-    #         self._current_order = order
-
-    #         # Takeoff
-    #         # Go to pickup location
-    #         await pickup(order)
-
-    #         # Go to delivery location
-    #         await deliver(order)
-
-    #         self._current_order = None
-    #         self._dstate = DroneStatus.IDLE
-    #         self.update_state()
-    #         self._orders.task_done()
 
     def image_response(self) -> None:
         """Post drone information to a monitoring service."""
@@ -466,6 +415,7 @@ class Drone:
                     dir_path = entry.path
 
         file_bytes = b"ERROR"
+
         if dir_path:
             with scandir(dir_path + r"\images") as it:
                 files = [e for e in it if e.is_file()]
@@ -485,6 +435,9 @@ class Drone:
                 }
             },
             "current_order": self.current_order.order_id,
+            "order_status": self.current_order.order_status,
         }
-        # TODO
+        if self.current_order.order_status == OrderStatus.DELIVERED:
+            self._current_order = None
+
         return data, {"image": ("capture", file_bytes, "image/png")}

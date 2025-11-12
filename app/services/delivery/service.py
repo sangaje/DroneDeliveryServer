@@ -47,6 +47,7 @@ def process_new_order(order_data: schemas.OrderCreateRequest) -> Order:
 
     # 3. Prepare order data for database creation
     db_order_data = {
+        "order_id": order_data.order_id,
         "drone_id": closest_drone.drone_id,
         "order_status": OrderStatus.PENDING,
         "item_count": total_item_count,
@@ -55,8 +56,8 @@ def process_new_order(order_data: schemas.OrderCreateRequest) -> Order:
         "deliver_lat": order_data.user_latitude,
         "deliver_lon": order_data.user_longitude,
         # Assuming a default altitude for now
-        "receive_alt": 10.0,
-        "deliver_alt": 50.0,
+        "receive_alt": 30.0,
+        "deliver_alt": 30.0,
     }
 
     # 4. Create the order
